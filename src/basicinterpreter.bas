@@ -7,13 +7,29 @@ Option Default Integer
 Dim ac
 Dim k, s$, z$
 Dim d = -1
-Dim il, cl, nl, rl, mx, ar, tt, ln, lt, ml, tr
-Dim r, lx, df, sf
+Dim il ' Highest numbered object 0..il
+Dim cl ' Highest action number 0..cl
+Dim nl ' Highest vocabulary number 0..nl
+Dim rl ' Highest room number 0..rl
+Dim mx ' Maximum number of objects carried
+Dim ar ' Starting room
+Dim tt ' Number of treasures
+Dim ln ' Word length
+Dim lt ' Time limit
+Dim ml ' Highest message number
+Dim tr ' Treasure room
+Dim lx ' Light duration
+Dim nv(1) ' verb & noun of current command
+Dim df ' Dark flag
+Dim r, sf
 Dim zi
 Dim tp$
 Dim v, w
 Dim f, f1, f2, f3
 Dim n, ll, ip
+Dim kk$
+Dim x ' 1st loop index
+Dim y ' 2nd loop index
 
 Cls
 
@@ -22,77 +38,74 @@ REM L% = screen width in chars
 
 REM X=Y=Z:K=R=V:N=LL=F:TP$=K$:W=IP=P:
 
-40 K=0:Z$="I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-":GOSUB 1240:GOTO 100
+40 K=0:Z$="I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
 
-50 CLS:PRINT'"*** WELCOME TO ADVENTURE LAND.(#4.6) ***":PRINT:PRINT" UNLESS TOLD DIFFERENTLY YOU MUST FIND"'"*TREASURES* AND RETURN THEM TO THEIR"'"PROPER PLACE!"
-60 PRINT
-PRINT "I'M YOUR PUPPET. GIVE ME ENGLISH COMMANDS THAT ";
-PRINT "CONSIST OF A NOUN AND VERB. SOME EXAMPLES..."
-PRINT
-PRINT "TO FIND OUT WHAT YOU'RE CARRYING YOU MIGHT SAY: TAKE INVENTORY"
-PRINT "TO GO INTO A HOLE YOU MIGHT SAY: GO HOLE"
-PRINT "TO SAVE CURRENT GAME: SAVE GAME"
-80 PRINT
-PRINT "YOU WILL AT TIMES NEED SPECIAL ITEMS TO DO THINGS, BUT I'M SURE YOU'LL BE A GOOD ADVENTURER AND FIGURE THESE THINGS OUT."
-PRINT
-INPUT "HAPPY ADVENTURING... HIT ENTER TO START", s$
-PROCcls()
-RETURN
+read_data("pirate.dat")
+intro()
 
 100 R=AR:LX=LT:DF=0:SF=0
-INPUT "USE OLD 'SAVED' GAME? ", S$
-IF LEFT$(S$,1)<>"Y" THEN Goto 130
-110 IFD<>-1THENCLOSE:OPEN"I",D,SV$ELSEINPUT"READY SAVED TAPE "K$:PRINT;INT(IL*5/60)+1;" MINUTES"
-120 d=OPENIN("SAV"):INPUT#d,SF,LX,DF,R:FORX=0TOIL:INPUT#d,IA(X):NEXT:CLOSE#d:IFD<>-1CLOSE
-130 GOSUB 50 : GOSUB 240 : GOTO 160
 
-140 PROCb:INPUT"TELL ME WHAT TO DO? ",TP$:PRINT:GOSUB170:IF F PRINT"YOU USE WORD(S) I DON'T KNOW":GOTO140
-150 GOSUB 360:IF IA(9)<>-1 ELSE LX=LX-1:IF LX<0 THEN PRINT"LIGHT HAS RUN OUT":IA(9)=0 ELSE IF LX<25 PRINT"LIGHT RUNS OUT IN";LX;"TURNS!"
+'INPUT "USE OLD 'SAVED' GAME? ", S$
+'IF LEFT$(S$,1)<>"Y" THEN Goto 130
+'110 IFD<>-1THENCLOSE:OPEN"I",D,SV$ELSEINPUT"READY SAVED TAPE "K$:PRINT;INT(IL*5/60)+1;" MINUTES"
+'120 d=OPENIN("SAV"):INPUT#d,SF,LX,DF,R:FORX=0TOIL:INPUT#d,IA(X):NEXT:CLOSE#d:IFD<>-1CLOSE
+
+describe_current_location()
+GOTO 160
+
+140
+PROCb
+INPUT "TELL ME WHAT TO DO? ", TP$
+PRINT
+GOSUB 170 ' Parse TP$
+IF F Then PRINT "YOU USE WORD(S) I DON'T KNOW" : GOTO 140
+150 GOSUB 360
+If lx < 0 Then Print "LIGHT HAS RUN OUT!" : ia(9) = 0 : Goto 160
+If lx < 25 Then Print "LIGHT RUNS OUT IN " Str$(lx) "TURNS!"
 160 NV(0)=0 : GOSUB 360 : GOTO 140
 
 REM Parse input 
 170 K=0:NT$(0)="":NT$(1)=""
-180 FORX=1TOLEN(TP$):K$=MID$(TP$,X,1):IFK$=" "THEN K=1 ELSE NT$(K)=LEFT$(NT$(K)+K$,ln)
-190 NEXTX:FORX=0TO1:NV(X)=0:IFNT$(X)=""THEN230 ELSE FORY=0TONL:K$=NV$(Y,X):IFLEFT$(K$,1)="*"THENK$=MID$(K$,2)
-200 IFX=1 IFY<7 THEN K$=LEFT$(K$,ln)
-210 IF NT$(X)=K$ THEN NV(X)=Y:y=Y:Y=NL:NEXTY:Y=y ELSE NEXTY:GOTO230
-220 IFLEFT$(NV$(NV(X),X),1)="*"THENNV(X)=NV(X)-1:GOTO220
-230 NEXTX:F=NV(0)<1ORLEN(NT$(1))>0ANDNV(1)<1:RETURN
-
-'240 IF DF IF IA(9)<>-1 AND IA(9)<>R PRINT"I CAN'T SEE, ITS TOO DARK.":RETURN
-240 If df Then
-  If ia(9) <> -1 And ia(9) <> r Then Print "I CAN'T SEE, IT'S TOO DARK." : Return
-EndIf
-250 K=-1
-IF LEFT$(RS$(R),1)="*" THEN PROCp(MID$(RS$(R),2)+".") ELSE PROCp("I'M IN A "+RS$(R)+".")
-260 FOR zi=0 TO IL
-  IF K Then IF IA(zi)=R Then PRINT "VISIBLE ITEMS HERE:" : K=0
-270 GOTO 300
-
-280 TP$=IA_STR$(zi)
-IF RIGHT$(TP$,1)<>"/" THEN Return
-FOR W=LEN(TP$)-1 TO 1 STEP-1
-  IF MID$(TP$,W,1)="/" Then TP$=LEFT$(TP$,W-1) : Return
-NEXT W
-290 RETURN
-
-REM 300 IF IA(Z)<>R THEN320 ELSE GOSUB280:IFPOS+LEN(TP$)+3>63THENPRINT
-300 IF IA(zi)<>R THEN Goto 320 ELSE GOSUB 280
-'310 PROCp(CHR$(32*-(POS>0))+TP$+"."):PROCj
-PROCp(TP$+".") : PROCj
-320 NEXT : IF POS Then PRINT' ELSEPRINT
-330 K=-1
-FOR zi = 0 TO 5
-  If K Then If RM(R,zi) <> 0 Then PRINT "OBVIOUS EXITS: "; : K=0
-340 IF RM(R,zi)<>0 Then PRINT NV$(zi+1,1);" ";
-350 NEXT zi
-IF POS Then Print
-Return
+180
+FOR X=1 TO LEN(TP$)
+kk$=MID$(TP$,X,1)
+IF kk$=" " THEN K=1 ELSE NT$(K) = LEFT$(NT$(K)+kk$,ln)
+190 NEXT 
+FOR X=0 TO 1
+  NV(X)=0
+  IF NT$(X)="" THEN
+    Goto 230
+  ELSE
+    FOR Y=0 TO NL
+    kk$=NV_STR$(Y,X)
+    IF LEFT$(kk$,1) = "*" THEN kk$=MID$(kk$,2)
+  ENDIF
+200
+  IF X = 1 Then
+    IF Y < 7 Then kk$=LEFT$(kk$,ln)
+  ENDIF
+210
+  IF NT$(X)=kk$ THEN
+    NV(X)=Y
+    y=Y
+    Y=NL
+    NEXT Y
+    Y=y
+  ELSE
+    NEXT Y
+    GOTO 230
+  ENDIF
+220 IF LEFT$(NV_STR$(NV(X),X),1) = "*" THEN NV(X)=NV(X)-1 : GOTO 220
+230
+NEXT X
+F = NV(0) < 1 OR LEN(NT$(1)) > 0 AND NV(1) < 1
+RETURN
 
 REM *** Search for matching actions ***
 
 REM Find a matching action
 360 F2=-1:F=-1:F3=0
+Print "DEBUG: foo"
 IF NV(0) = 1 AND NV(1) < 7 THEN Goto 610
 FOR X=0 TO CL
   V=INT(CA(X,0)/150)
@@ -251,15 +264,15 @@ REM Next command
 960 NEXT Y
 
 REM Stop processing non-automatic actions
-970 IF NV(0)<>0 THEN x=X:X=CL:NEXTX:X=x:GOTO990
+970 IF NV(0)<>0 THEN x=X:X=CL:NEXT X:X=x:GOTO 990
 
 REM Next automatic action
 980 NEXT X
 990 :
-1000 IFNV(0)=0THEN1040
-1010 GOSUB1060
-1020 IF F PRINT"I DON'T UNDERSTAND YOUR COMMAND":GOTO1040
-1030 IF NOT F2 PRINT"I CAN'T DO THAT YET":GOTO1040
+1000 IF NV(0)=0 THEN Goto 1040
+1010 GOSUB 1060
+1020 IF F Then PRINT "I DON'T UNDERSTAND YOUR COMMAND": GOTO 1040
+1030 IF NOT F2 Then PRINT "I CAN'T DO THAT YET" : GOTO 1040
 
 REM Return from action-matching routine
 1040 RETURN
@@ -287,43 +300,110 @@ REM Automatically GET or DROP
 1220 IF K<>0 THEN F=0
 1230 RETURN
 
-1240 IF D<>-1 THEN Goto 1330 ELSE INPUT "READY DATA TAPE. HIT ENTER ", s$
-d = 1
-1245 Open "pirate.dat" For Input AS d
-'1245 d=OPENIN("DAT")
-1250 INPUT #d,IL,CL,NL,RL,MX,AR,TT,ln,LT,ML,TR
-REM 1260 W=INT((IL+INT(CL/2)+INT(NL/10)+RL+ML)/12):REM PRINTW+1;"MINUTES TO LOAD."
-1270 DIM NV(1)
-Dim CA(CL,7)
-Print NL
-Dim NV_STR$(NL,1)
-Dim IA_STR$(IL)
-Dim IA(IL)
-Dim RS$(RL)
-Dim RM(RL,5)
-Dim MS$(ML)
-Dim NT$(1)
-Dim I2(IL)
-Dim x, y
-1280 FOR X=0 TO CL STEP 2
-  Y=X+1
-  INPUT #d,CA(X,0),CA(X,1),CA(X,2),CA(X,3),CA(X,4),CA(X,5),CA(X,6),CA(X,7),CA(Y,0),CA(Y,1),CA(Y,2),CA(Y,3),CA(Y,4),CA(Y,5),CA(Y,6),CA(Y,7)
-NEXT X
-1290 FOR X=0 TO NL STEP 10
-  FOR Y=0 TO 1
-    INPUT #d,NV_STR$(X,Y),NV_STR$(X+1,Y),NV_STR$(X+2,Y),NV_STR$(X+3,Y),NV_STR$(X+4,Y),NV_STR$(X+5,Y),NV_STR$(X+6,Y),NV_STR$(X+7,Y),NV_STR$(X+8,Y),NV_STR$(X+9,Y)
-REM 1295 P.NV$(X,Y),NV$(X+1,Y),NV$(X+2,Y),NV$(X+3,Y),NV$(X+4,Y),NV$(X+5,Y),NV$(X+6,Y),NV$(X+7,Y),NV$(X+8,Y),NV$(X+9,Y)
-  NEXT Y
-NEXT X
-'1297 NEXT Y, X
-1300 FOR X=0 TO RL : INPUT #d,RM(X,0),RM(X,1),RM(X,2),RM(X,3),RM(X,4),RM(X,5),RS$(X) : NEXT X
-1310 FOR X=0 TO ML : INPUT #d,MS$(X) : NEXT X
-1320 FOR X=0 TO IL : INPUT #d,IA_STR$(X),IA(X):I2(X)=IA(X) : NEXT X
-CLOSE #d
-RETURN
-1330 REM
+Sub read_data(f$)
+  f$ = "pirate.dat"
+  Open f$ For Input AS 1
+  Input #1, il, cl, nl, rl, mx, ar, tt, ln, lt, ml, tr
+'1270 DIM NV(1)
+  Dim ca(cl, 7)      ' action table
+  Dim nv_str$(nl, 1) ' vocabulary table - verbs at index 0, nouns at index 1
+  Dim ia_str$(il)    ' object descriptions
+  Dim ia(il)         ' object locations
+  Dim rs$(rl)        ' room descriptions
+  Dim rm(rl, 5)      ' room exits: N, S, E, W, U, D
+  Dim ms$(ml)        ' messages table
+'Dim NT$(1)
+'Dim I2(IL)
+'Dim x, y
 
-2000
+  Local i, j
+
+  ' Read action table.
+  For i = 0 To cl Step 2
+    j = i + 1
+    Input #1,ca(i,0),ca(i,1),ca(i,2),ca(i,3),ca(i,4),ca(i,5),ca(i,6),ca(i,7),ca(j,0),ca(j,1),ca(j,2),ca(j,3),ca(j,4),ca(j,5),ca(j,6),ca(j,7)
+  Next i
+
+  ' Read vocabulary table.
+  For i = 0 To nl Step 10
+   For j = 0 TO 1
+    Input #1,NV_STR$(i,j),NV_STR$(i+1,j),NV_STR$(i+2,j),NV_STR$(i+3,j),NV_STR$(i+4,j),NV_STR$(i+5,j),NV_STR$(i+6,j),NV_STR$(i+7,j),NV_STR$(i+8,j),NV_STR$(i+9,j)
+REM 1295 P.NV$(X,Y),NV$(X+1,Y),NV$(X+2,Y),NV$(X+3,Y),NV$(X+4,Y),NV$(X+5,Y),NV$(X+6,Y),NV$(X+7,Y),NV$(X+8,Y),NV$(X+9,Y)
+    Next j
+  Next i
+
+  ' Read rooms.
+  For i = 0 TO rl : INPUT #1, rm(i,0),rm(i,1),rm(i,2),rm(i,3),rm(i,4),rm(i,5),rs$(i) : Next i
+
+  ' Read messages.
+  For i = 0 TO ml : Input #1, ms$(i) : Next i
+
+  ' Read objects.
+  Dim i2(il)
+  For i = 0 TO il : Input #1, ia_str$(i),ia(i):i2(i)=ia(i) : Next i
+
+  Close #1
+End Sub
+
+Sub intro()
+  Local s$
+
+  Cls
+' Print'"*** WELCOME TO ADVENTURE LAND.(#4.6) ***":PRINT:PRINT" UNLESS TOLD DIFFERENTLY YOU MUST FIND"'"*TREASURES* AND RETURN THEM TO THEIR"'"PROPER PLACE!"
+  Print "I'M YOUR PUPPET. GIVE ME ENGLISH COMMANDS THAT ";
+  Print "CONSIST OF A NOUN AND VERB. SOME EXAMPLES..."
+  Print
+  Print "TO FIND OUT WHAT YOU'RE CARRYING YOU MIGHT SAY: TAKE INVENTORY"
+  Print "TO GO INTO A HOLE YOU MIGHT SAY: GO HOLE"
+  Print "TO SAVE CURRENT GAME: SAVE GAME"
+  Print
+  Print "YOU WILL AT TIMES NEED SPECIAL ITEMS TO DO THINGS, BUT I'M SURE YOU'LL BE A GOOD ADVENTURER AND FIGURE THESE THINGS OUT."
+  Print
+  Input "HAPPY ADVENTURING... HIT ENTER TO START", s$
+  Cls
+End Sub
+
+Sub describe_current_location()
+  If df Then
+    ' Object 9 is the torch.
+    If ia(9) <> -1 And ia(9) <> r Then
+      Print "I CAN'T SEE, IT'S TOO DARK."
+      Exit Sub
+    EndIf
+  EndIf
+
+  If Left$(rs$(r), 1) = "*" Then
+    Print Mid$(rs$(r), 2) + "."
+  Else
+    Print "I'm in a " + rs$(r) + "."
+  EndIf
+
+  250 K=-1
+'  IF LEFT$(RS$(R),1)="*" THEN PROCp(MID$(RS$(R),2)+".") ELSE PROCp("I'M IN A "+RS$(R)+".")
+  260 FOR zi=0 TO IL
+    IF K Then IF IA(zi)=R Then PRINT "VISIBLE ITEMS HERE:" : K=0
+  270 GOTO 300
+
+  280 TP$=IA_STR$(zi)
+  IF RIGHT$(TP$,1)<>"/" THEN Return
+  FOR W=LEN(TP$)-1 TO 1 STEP-1
+    IF MID$(TP$,W,1)="/" Then TP$=LEFT$(TP$,W-1) : Return
+  NEXT W
+  290 RETURN
+
+  REM 300 IF IA(Z)<>R THEN320 ELSE GOSUB280:IFPOS+LEN(TP$)+3>63THENPRINT
+  300 IF IA(zi)<>R THEN Goto 320 ELSE GOSUB 280
+  '310 PROCp(CHR$(32*-(POS>0))+TP$+"."):PROCj
+  PROCp(TP$+".") : PROCj
+  320 NEXT : IF POS Then PRINT' ELSEPRINT
+  330 K=-1
+  FOR zi = 0 TO 5
+    If K Then If RM(R,zi) <> 0 Then PRINT "OBVIOUS EXITS: "; : K=0
+  340 IF RM(R,zi)<>0 Then PRINT NV$(zi+1,1);" ";
+  350 NEXT zi
+  IF POS Then Print
+End Sub
+
 Sub PROCcls()
   Cls
   Print
@@ -345,4 +425,7 @@ End Sub
 REM Is the previous line blank?
 2100 DEFFNb:LOCALA%,C%,I%:VDU11,8:A%=&87:FORI%=1TOL%:VDU9:C%=(USR(&FFF4)AND&FF00)DIV256:IFC%=32NEXT:VDU10,13:=TRUE ELSEI%=L%:NEXT:VDU10,13:=FALSE
 REM If at start of line, then print a blank line if prev line isn't blank.
-2120 DEFPROCb:IFPOS ENDPROC ELSE IFNOT(FNb)PRINT:ENDPROC ELSEENDPROC
+
+'2120 DEFPROCb:IFPOS ENDPROC ELSE IFNOT(FNb)PRINT:ENDPROC ELSEENDPROC
+Sub PROCb()
+End Sub
