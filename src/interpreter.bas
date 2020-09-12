@@ -21,7 +21,7 @@ Dim tr ' Treasure room
 Dim lx ' Light duration
 Dim nv(1) ' verb & noun of current command
 Dim df ' Dark flag
-Dim r
+Dim r  ' Current room
 Dim sf ' Status flag
 Dim zi
 Dim tp$
@@ -32,6 +32,7 @@ Dim kk$
 Dim x ' 1st loop index
 Dim y ' 2nd loop index
 Dim l
+Dim cmd(3)
 
 Cls
 
@@ -40,7 +41,7 @@ REM L% = screen width in chars
 
 REM X=Y=Z:K=R=V:N=LL=F:TP$=K$:W=IP=P:
 
-40 K=0:Z$="I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
+40 K=0':Z$="I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
 
 read_data("pirate.dat")
 intro()
@@ -102,88 +103,28 @@ Next y
 If Not f2 Then Next x
 
 REM Process the commands
-560 IP=0:FOR Y=1 TO 4:K=INT((Y-1)/2)+6:ON Y GOTO 570,580,570,580
-570 AC=INT(CA(X,K)/150):GOTO 590
-580 AC=CA(X,K)-INT(CA(X,K)/150)*150
-590 IF AC>101 THEN Goto 600 ELSE IF AC=0 THEN Goto 960 ELSE IF AC<52 THEN Print MS$(AC):GOTO 960:ELSE ON AC-51 GOTO 660,700,740,760,770,780,790,760,810,830,840,850,860,870,890,920,930,940,950,710,750
-600 Print MS$(AC-50) : GOTO 960
+IP=0
+cmd(0) = Int(ca(x, 6) / 150)
+cmd(1) = ca(x, 6) - cmd(0) * 150
+cmd(2) = Int(xa(x, 7) / 150)
+cmd(3) = ca(x, 7) - cmd(2) * 150
+
+For y = 0 To 3
+  do_command(cmd(y))
+Next y
+
+'FOR Y=1 TO 4
+'  K=INT((Y-1)/2)+6
+'  ON Y GOTO 570,580,570,580
+'570 AC=INT(CA(X,K)/150):GOTO 590
+'580 AC=CA(X,K)-INT(CA(X,K)/150)*150
+'590 IF AC>101 THEN Goto 600 ELSE IF AC=0 THEN Goto 960 ELSE IF AC<52 THEN Print MS$(AC):GOTO 960:ELSE ON AC-51 GOTO 660,700,740,760,770,780,790,760,810,830,840,850,860,870,890,920,930,940,950,710,750
+'600 Print MS$(AC-50) : GOTO 960
 
 ' Go <Direction>
 610
 action_go()
 Goto 1040
-
-REM 52. GETx
-660 L=0:FORZ=1TOIL:IFIA(Z)=-1LETL=L+1
-670 NEXTZ
-680 IF L>=MX PRINT Z$:GOTO970
-690 GOSUB1050:IA(P)=-1:GOTO960
-
-REM 53. DROPx
-700 GOSUB1050:IA(P)=R:GOTO960
-
-REM 71. SAVE
-710 PRINT"SAVING GAME":IFD=-1 INPUT"READY OUTPUT TAPE "K$:PRINT;INT(IL*5/60)+1;" MINUTES"ELSE OPEN"O",D,SV$
-720 d=OPENOUT("SAV"):PRINT#d,SF,LX,DF,R:FORW=0TOIL:PRINT#d,IA(W):NEXT:CLOSE#d:IFD<>-1CLOSE
-730 GOTO960
-
-REM 54. GOTOy
-740 GOSUB1050:R=P:GOTO960
-
-REM 72. EXx,x (Exchange the room locations of the Par #1 object and the Par #2 object)
-750 GOSUB1050:L=P:GOSUB1050:Z=IA(P):IA(P)=IA(L):IA(L)=Z:GOTO960
-
-REM 55/59. x->RM0
-760 GOSUB1050:IA(P)=0:GOTO960
-
-REM 56. NIGHT
-770 DF=-1:GOTO960
-
-REM 57. DAY
-780 DF=0:GOTO960
-
-REM 58. SETz
-790 GOSUB1050
-800 SF=SF OR INT(.5+2^P):GOTO960
-
-REM 60. CLRz
-810 GOSUB1050
-
-820 SF=SF AND NOT INT(.5+2^P):GOTO960
-
-REM 61. DEAD
-830 PRINT"I'M DEAD...":R=RL:DF=0:GOTO860
-
-REM 62. x->y (Move the Par #1 object to the Par #2 room)
-840 GOSUB1050:L=P:GOSUB1050:IA(L)=P:GOTO960
-
-REM 63. FINI
-850 INPUT"THE GAME IS NOW OVER"'"ANOTHER GAME? "K$:IFLEFT$(K$,1)="N"THENEND ELSE FORX=0TOIL:IA(X)=I2(X):NEXT:GOTO100
-
-REM 64. DspRM
-860 GOSUB240:GOTO960
-
-REM 65. SCORE
-870 L=0:FORZ=1TOIL:IFIA(Z)=TR IFLEFT$(IA$(Z),1)="*"LET L=L+1
-880 NEXTZ:PRINT"I'VE STORED ";L;" TREASURES."'"ON A SCALE OF 0 TO 100 THAT RATES A ";INT(L/TT*100):IFL=TT THENPRINT"WELL DONE.":GOTO850 ELSE960
-
-REM 66. INV
-REM 890 PRINT"I'M CARRYING:":K$="NOTHING":PROCd3("890 FOR"):FORZ=0TOIL:IFIA(Z)<>-1THEN910 ELSEGOSUB280:IFLEN(TP$)+POS>63PRINT
-890 PRINT"I'M CARRYING:":K$="NOTHING":FORZ=0TOIL:IFIA(Z)<>-1THEN910 ELSEGOSUB280
-900 Print CHR$(32*-(POS>0) + TP$ + "." : K$=""
-910 NEXT:PRINTK$:IFPOS PRINT':GOTO960 ELSEPRINT:GOTO960
-
-REM 67. SET0 (Sets the flag-bit numbered 0)
-920 P=0:GOTO 800
-
-REM 68. CLR0 (Clears the flag-bit numbered 0)
-930 P=0:GOTO 820
-
-REM 69. FILL (Re-fill the artificial light source (obj 9) and pick it up)
-940 LX=LT:IA(9)=-1:GOTO 960
-
-REM 70. CLS
-950 Cls : GOTO 960
 
 REM Next command
 960 NEXT Y
@@ -392,6 +333,223 @@ Sub action_go()
   If Not l Then Cls
   r = k
   describe_current_location()
+End Sub
+
+Sub do_command(cmd)
+  Local i, x, y
+
+  Select Case cmd
+    Case 0
+      ' Do nothing ? Or should it display message 0 which is null ?
+
+    Case 1 To 51
+      ' Display corresponding message.
+      Print ms$(cmd)
+
+    Case 52
+      ' GETx
+      ' Pick up the Par #1 object unless player already carrying the limit.
+      ' The object may be in this room, or in any other room.
+      x = 0
+      For i = 1 To il
+        If ia(i) = -1 Then x = x + 1
+      Next i
+      If x > mx Then Print "I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
+      Goto 970 ' TODO: stop processing non-automatic actions
+      Gosub 1050
+      ia(p) = -1
+      ' Goto 960
+
+    Case 53
+      ' DROPx
+      ' Drop the Par #1 object in the current room.
+      ' The object may be carried or in any other room
+      Gosub 1050
+      ia(p) = r
+      ' Goto 960
+
+    Case 54
+      ' GOTOy
+      ' Move the player to the Par #1 room.
+      ' This command should be followed by a DspRM (64) command.
+      ' Also it may need to be followed by a NIGHT (56) or DAY (57) command.
+      Gosub 1050
+      r = p
+      ' Goto 960
+
+    Case 55, 59
+      ' x->RM0
+      ' Move the Par #1 object to room 0 (the storeroom).
+      Gosub 1050
+      ia(p) = 0
+      ' Goto 960
+
+    Case 56
+      ' NIGHT
+      ' Set the darkness flag-bit (15).
+      ' It will be dark if the artificial light source is not available,
+      ' so this should be followed by a DspRM (64) command.
+      df = 1 ' TODO: this isn't a flag bit ! difference between interpreter versions ?
+      ' Goto 960
+
+    Case 57
+      ' DAY
+      ' Clear the darkness flag-bit (15).
+      ' This should be followed by a DspRM (64) command.
+      df = 0
+      ' Goto 960
+
+    Case 58
+      ' SETz
+      ' Set the Par #1 flag-bit.
+      Gosub 1050
+      sf = sf Or Int(0.5 + 2^p)
+      ' Goto 960
+
+    Case 60
+      ' CLRz
+      ' Clear the Par #1 flag-bit.
+      Gosub 1050
+      sf = sf And Not Int(0.5 + 2^p)
+      ' Goto 960
+
+    Case 61
+      ' DEAD
+      ' Tell the player they are dead,
+      ' Goto the last room (usually some form of limbo),
+      ' make it DAY and display the room.
+      Print "I'M DEAD..."
+      r = rl
+      df = 0
+      do_command(64)
+      ' Goto 960
+
+    Case 62
+      ' x->y
+      ' Move the Par #1 object to the Par #2 room.
+      ' This will automatically display the room if the object came from,
+      ' or went to the current room.
+      Gosub 1050
+      x = p
+      Gosub 1050
+      ia(x) = p
+      ' TODO: This isn't automatically displaying the room ?
+      ' Goto 960
+
+    Case 63
+      ' FINI
+      ' Tell the player the game is over and ask if they want to play again.
+      Print "The game is now over."
+      Print "Another game?";
+      Input s$
+      If LCase$(Left$(s$, 1)) = "n" Then
+        End
+      Else
+        For i = 0 To il
+          ia(i) = i2(i)
+        Next i
+        Goto 100 ' Restart ?
+      EndIf
+
+    Case 64
+      ' DspRM
+      ' Display the current room.
+      ' This checks if the darkness flag-bit (15) is set and the artificial
+      ' light (object 9) is not available.
+      ' If there is light, it displays the room description, the obejcts in
+      ' the room and any obvious exits.
+      describe_current_location()
+
+    Case 65
+      ' SCORE
+      ' Tells the player how many treasures they have collected by getting
+      ' them to the treasure room and what their percentage of the total is.
+      x = 0
+      For i = 1 To il
+        If ia(i) = tr And Left$(ia_str$(i), 1) = "*" Then x = x + 1
+      Next i
+      Print "I've stored " Str$(x) " treasures. On a scale of 0 to 100 that rates a ";
+      Print Str$(Int(x/tt*100)) "."
+      If x = tt Then
+        Print "Well done."
+        Goto 850
+      EndIf
+
+    Case 66
+      ' INV
+      ' Tells the player what objects they are carrying.
+      Print "I'm carrying: ";
+      print_object_list(-1)
+
+    Case 67
+      ' SET0
+      ' Sets the flag-bit numbered 0 (this may be convenient because no parameter is used).
+      sf = sf Or Int(0.5)
+
+    Case 68
+      ' CLR0
+      ' Clears the flag-bit numbered 0 (this may be convenient because no parameter is used).
+      sf = sf And Not Int(0.5)
+
+    Case 69
+      ' FILL
+      ' Re-fill the artifical light source and clear flag-bit 16 which
+      ' indicates that it was empty. This also picks up the artifical light
+      ' source (object 9). This command should be followed by a x->RM0 to store
+      ' the unlighted light source (these are two different objects).
+      lx = lt
+      ia(9) = -1
+
+    Case 70
+      ' CLS
+      Cls
+
+    Case 71
+      ' SAVEz
+      ' This command saves the game to tape or disk, depending on which version
+      ' is used. It writes some user variables such as time limit and the
+      ' current room and the current locations of all objects out as a saved
+      ' game.
+      '710 PRINT"SAVING GAME":IFD=-1 INPUT"READY OUTPUT TAPE "K$:PRINT;INT(IL*5/60)+1;" MINUTES"ELSE OPEN"O",D,SV$
+      '720 d=OPENOUT("SAV"):PRINT#d,SF,LX,DF,R:FORW=0TOIL:PRINT#d,IA(W):NEXT:CLOSE#d:IFD<>-1CLOSE
+      '730 GOTO960
+
+    Case 72
+      ' EXx,x
+      ' This command exchanges the room locations of the Par #1 object and the
+      ' Par #2 object. If the objects in the current room change, the new
+      ' description will be displayed.
+      Gosub 1050
+      x = p
+      Gosub 1050
+      y = ia(p)
+      ia(p) = ia(x)
+      ia(x) = y
+
+    Case Else
+      Error "Unknown command:" cmd
+
+  End Select
+
+End Sub
+
+Sub print_object_list(rm)
+  Local count, i, p
+
+  For i = 0 To il
+    If ia(i) = rm Then
+      count = count + 1
+      If count > 1 Then Print ", ";
+      p = InStr(ia_str$(i), "/")
+      If p < 1 Then
+        Print ia_str$(i);
+      Else
+        Print Left$(ia_str$(i), p - 1);
+      EndIf
+    EndIf
+  Next i
+
+  If count = 0 Then Print "Nothing" Else Print
 End Sub
 
 Sub dump_vocab()
