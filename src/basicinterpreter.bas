@@ -54,58 +54,20 @@ describe_current_location()
 GOTO 160
 
 140
-PROCb
 INPUT "TELL ME WHAT TO DO? ", TP$
 PRINT
-GOSUB 170 ' Parse TP$
+parse(tp$)
+'GOSUB 170 ' Parse TP$
 IF F Then PRINT "YOU USE WORD(S) I DON'T KNOW" : GOTO 140
 150 GOSUB 360
 If lx < 0 Then Print "LIGHT HAS RUN OUT!" : ia(9) = 0 : Goto 160
 If lx < 25 Then Print "LIGHT RUNS OUT IN " Str$(lx) "TURNS!"
 160 NV(0)=0 : GOSUB 360 : GOTO 140
 
-REM Parse input 
-170 K=0:NT$(0)="":NT$(1)=""
-180
-FOR X=1 TO LEN(TP$)
-kk$=MID$(TP$,X,1)
-IF kk$=" " THEN K=1 ELSE NT$(K) = LEFT$(NT$(K)+kk$,ln)
-190 NEXT 
-FOR X=0 TO 1
-  NV(X)=0
-  IF NT$(X)="" THEN
-    Goto 230
-  ELSE
-    FOR Y=0 TO NL
-    kk$=NV_STR$(Y,X)
-    IF LEFT$(kk$,1) = "*" THEN kk$=MID$(kk$,2)
-  ENDIF
-200
-  IF X = 1 Then
-    IF Y < 7 Then kk$=LEFT$(kk$,ln)
-  ENDIF
-210
-  IF NT$(X)=kk$ THEN
-    NV(X)=Y
-    y=Y
-    Y=NL
-    NEXT Y
-    Y=y
-  ELSE
-    NEXT Y
-    GOTO 230
-  ENDIF
-220 IF LEFT$(NV_STR$(NV(X),X),1) = "*" THEN NV(X)=NV(X)-1 : GOTO 220
-230
-NEXT X
-F = NV(0) < 1 OR LEN(NT$(1)) > 0 AND NV(1) < 1
-RETURN
-
 REM *** Search for matching actions ***
 
 REM Find a matching action
 360 F2=-1:F=-1:F3=0
-Print "DEBUG: foo"
 IF NV(0) = 1 AND NV(1) < 7 THEN Goto 610
 FOR X=0 TO CL
   V=INT(CA(X,0)/150)
@@ -179,13 +141,13 @@ REM Process the commands
 560 IP=0:FOR Y=1 TO 4:K=INT((Y-1)/2)+6:ON Y GOTO 570,580,570,580
 570 AC=INT(CA(X,K)/150):GOTO 590
 580 AC=CA(X,K)-INT(CA(X,K)/150)*150
-590 IF AC>101 THEN Goto 600 ELSE IF AC=0 THEN Goto 960 ELSE IF AC<52 THEN PROCp(MS$(AC)):GOTO 960:ELSE ON AC-51 GOTO 660,700,740,760,770,780,790,760,810,830,840,850,860,870,890,920,930,940,950,710,750
-600 PROCp(MS$(AC-50)):GOTO 960
+590 IF AC>101 THEN Goto 600 ELSE IF AC=0 THEN Goto 960 ELSE IF AC<52 THEN Print MS$(AC):GOTO 960:ELSE ON AC-51 GOTO 660,700,740,760,770,780,790,760,810,830,840,850,860,870,890,920,930,940,950,710,750
+600 Print MS$(AC-50) : GOTO 960
 
 610 L=DF:IFL THEN L=DF AND IA(9)<>R AND IA(9)<>-1:IF L PRINT"DANGEROUS TO MOVE IN THE DARK!"
 620 IFNV(1)<1PRINT"GIVE ME A DIRECTION TOO.":GOTO1040
 630 K=RM(R,NV(1)-1):IFK>=1 ELSE IFL THENPRINT"I FELL DOWN AND BROKE MY NECK.":K=RL:DF=0:ELSE PRINT"I CAN'T GO IN THAT DIRECTION":GOTO1040
-640 IF NOT L PROCcls
+640 IF NOT L Cls
 650 R=K:GOSUB240:GOTO1040
 
 REM 52. GETx
@@ -245,7 +207,7 @@ REM 65. SCORE
 REM 66. INV
 REM 890 PRINT"I'M CARRYING:":K$="NOTHING":PROCd3("890 FOR"):FORZ=0TOIL:IFIA(Z)<>-1THEN910 ELSEGOSUB280:IFLEN(TP$)+POS>63PRINT
 890 PRINT"I'M CARRYING:":K$="NOTHING":FORZ=0TOIL:IFIA(Z)<>-1THEN910 ELSEGOSUB280
-900 PROCp(CHR$(32*-(POS>0))+TP$+"."):PROCj:K$=""
+900 Print CHR$(32*-(POS>0) + TP$ + "." : K$=""
 910 NEXT:PRINTK$:IFPOS PRINT':GOTO960 ELSEPRINT:GOTO960
 
 REM 67. SET0 (Sets the flag-bit numbered 0)
@@ -258,7 +220,7 @@ REM 69. FILL (Re-fill the artificial light source (obj 9) and pick it up)
 940 LX=LT:IA(9)=-1:GOTO 960
 
 REM 70. CLS
-950 PROCcls:GOTO 960
+950 Cls : GOTO 960
 
 REM Next command
 960 NEXT Y
@@ -364,68 +326,86 @@ Sub intro()
 End Sub
 
 Sub describe_current_location()
+  Local i, k, p
+
   If df Then
     ' Object 9 is the torch.
     If ia(9) <> -1 And ia(9) <> r Then
-      Print "I CAN'T SEE, IT'S TOO DARK."
+      Print "I can't see, its too dark!"
       Exit Sub
     EndIf
   EndIf
 
   If Left$(rs$(r), 1) = "*" Then
-    Print Mid$(rs$(r), 2) + "."
+    Print Mid$(rs$(r), 2)
   Else
-    Print "I'm in a " + rs$(r) + "."
+    Print "I'm in a " + rs$(r)
   EndIf
 
-  250 K=-1
-'  IF LEFT$(RS$(R),1)="*" THEN PROCp(MID$(RS$(R),2)+".") ELSE PROCp("I'M IN A "+RS$(R)+".")
-  260 FOR zi=0 TO IL
-    IF K Then IF IA(zi)=R Then PRINT "VISIBLE ITEMS HERE:" : K=0
-  270 GOTO 300
+  Print "Obvious exits: ";
+  k = 0
+  For i = 0 To 5
+    If rm(r, i) <> 0 Then
+      Print nv$(i + 1, 1) " ";
+      k = k + 1
+    EndIf
+  Next i
+  If k = 0 Then Print "NONE" Else Print
 
-  280 TP$=IA_STR$(zi)
-  IF RIGHT$(TP$,1)<>"/" THEN Return
-  FOR W=LEN(TP$)-1 TO 1 STEP-1
-    IF MID$(TP$,W,1)="/" Then TP$=LEFT$(TP$,W-1) : Return
-  NEXT W
-  290 RETURN
-
-  REM 300 IF IA(Z)<>R THEN320 ELSE GOSUB280:IFPOS+LEN(TP$)+3>63THENPRINT
-  300 IF IA(zi)<>R THEN Goto 320 ELSE GOSUB 280
-  '310 PROCp(CHR$(32*-(POS>0))+TP$+"."):PROCj
-  PROCp(TP$+".") : PROCj
-  320 NEXT : IF POS Then PRINT' ELSEPRINT
-  330 K=-1
-  FOR zi = 0 TO 5
-    If K Then If RM(R,zi) <> 0 Then PRINT "OBVIOUS EXITS: "; : K=0
-  340 IF RM(R,zi)<>0 Then PRINT NV$(zi+1,1);" ";
-  350 NEXT zi
-  IF POS Then Print
-End Sub
-
-Sub PROCcls()
-  Cls
+  k = 0
+  For i = 0 To il
+    If ia(i) = r Then
+      If k = 0 Then Print "Visible items here: ";
+      k = k + 1
+      If k > 1 Then Print ", ";
+      p = InStr(ia_str$(i), "/")
+      If p < 1 Then
+        Print ia_str$(i);
+      Else
+        Print Left$(ia_str$(i), p - 1);
+      EndIf
+    EndIf
+  Next i
   Print
 End Sub
 
-REM Word-wrap
-'2060 DEFPROCp($S%):LOCALA%,Z%,C%,N%,T%:N%=LEN$S%:A%=0:Z%=L%+1-POS:REPEATIFZ%>N%Z%=N%ELSEREPEATZ%=Z%-1:C%=S%?Z%:UNTILC%=32:IFZ%<A%Z%=A%+L%
-'2070 T%=S%?Z%:S%?Z%=13:PRINT$(S%+A%);:S%?Z%=T%:VDU32,-8*(POS=1):IFZ%-A%<=L%ANDPOS PRINTELSEIFC%=32A%=A%+1ELSEZ%=Z%-1
-'2080 A%=Z%+1:Z%=A%+L%+1:UNTILA%>=N%:IFPOS PRINT:ENDPROC ELSEENDPROC
-Sub PROCp(s$)
-  Print s$
-End Sub
+Sub parse(s$)
+  Local i, j, k, nt$(2), w$
+  nt$(0) = "" ' current verb
+  nt$(1) = "" ' current noun
 
-REM Backtrack to previous non-space char 
-'2090 DEFPROCj:LOCALA%,C%:A%=&87:REPEATVDU8:C%=(USR(&FFF4)AND&FF00)DIV256:UNTILC%<>32:VDU9:ENDPROC
-Sub PROCj()
-End Sub
+  For i = 1 To Len(s$)
+    If Mid$(s$, i, 1) = " " Then
+      k = 1
+    Else
+      nt$(k) = nt$(k) + Mid$(s$, i, 1)
+    EndIf
+  Next i
 
-REM Is the previous line blank?
-2100 DEFFNb:LOCALA%,C%,I%:VDU11,8:A%=&87:FORI%=1TOL%:VDU9:C%=(USR(&FFF4)AND&FF00)DIV256:IFC%=32NEXT:VDU10,13:=TRUE ELSEI%=L%:NEXT:VDU10,13:=FALSE
-REM If at start of line, then print a blank line if prev line isn't blank.
+  nt$(0) = LCase$(Left$(nt$(0), ln))
+  nt$(1) = LCase$(Left$(nt$(1), ln))
 
-'2120 DEFPROCb:IFPOS ENDPROC ELSE IFNOT(FNb)PRINT:ENDPROC ELSEENDPROC
-Sub PROCb()
+  For i = 0 To 1
+    ' i = 0 for verb, 1 for noun.
+    nv(i) = 0
+    If nt$(i) <> "" Then
+      For j = 0 To nl
+        w$ = nv_str$(j, i)
+        If Left$(w$, 1) = "*" Then w$ = Mid$(w$, 2)
+        If i = 1 And j < 7 Then w$ = Left$(w$, ln)
+        If nt$(i) = LCase$(w$) Then
+          ' Word found, if it's a synonym then use previous word
+          nv(i) = j
+          Do While Left$(nv_str$(nv(i), i), 1) = "*"
+            nv(i) = nv(i) - 1
+          Loop
+          Exit For
+        EndIf
+      Next j
+    EndIf
+  Next i
+
+  Print nv(0), nv(1)
+
+  f = nv(0) < 1 Or Len(nt$(1)) > 0 And nv(1) < 1
 End Sub
