@@ -21,7 +21,8 @@ Dim tr ' Treasure room
 Dim lx ' Light duration
 Dim nv(1) ' verb & noun of current command
 Dim df ' Dark flag
-Dim r, sf
+Dim r
+Dim sf ' Status flag
 Dim zi
 Dim tp$
 Dim v, w
@@ -30,6 +31,7 @@ Dim n, ll, ip
 Dim kk$
 Dim x ' 1st loop index
 Dim y ' 2nd loop index
+Dim l
 
 Cls
 
@@ -68,74 +70,36 @@ REM *** Search for matching actions ***
 
 REM Find a matching action
 360 F2=-1:F=-1:F3=0
+
+' Go <Direction>
 IF NV(0) = 1 AND NV(1) < 7 THEN Goto 610
-FOR X=0 TO CL
-  V=INT(CA(X,0)/150)
-  IF NV(0)=0 Then If V<>0 Then Return
-370 IF NV(0)<>V THEN NEXT X : GOTO 990
-N=CA(X,0)-V*150
-380 IF NV(0) = 0 Then F = 0 : GOTO 385
-GOTO 390
-385 IF RND(100)<=N THEN Goto 400
-NEXT X : GOTO 990
-390 IF N<>NV(1) AND N<>0 THEN NEXT X : GOTO 990
+
+FOR x = 0 to cl
+  v = Int(ca(x, 0) / 150) ' action - verb
+  n = ca(x, 0) - v * 150  ' action - noun
+  If v = 0 Then
+    ' Automatic action, n is the probability
+    f = 0
+    If rnd(100) <= n Then Goto 400
+  EndIf
+  If nv(0) = v And nv(1) = n Then Goto 400
+  If nv(0) = v And n = 0 Then Goto 400
+Next x
+
+Goto 990
 
 REM Process the conditions                        K=condition code, LL="number"
-400 F2=-1:F=0:F3=-1
-FOR Y=1 TO 5
-  W=CA(X,Y)
-  LL=INT(W/20)
-  K=W-LL*20
-  F1=-1
-'  Print K+1
-  ON K+1 GOTO 550,430,450,470,490,500,510,520,530,540,410,420,440,460,480
+400 Print "DEBUG: Process condition:"; x
+F2 = 1 : F = 0 : F3 = 1
+FOR y = 1 TO 5
+  W = CA(X,Y)
+  LL = INT(W/20) ' ll = <number>
+  K = W -LL*20   ' k = condition code
+  f2 = f2 And evaluate_condition(k, ll)
+  If Not f2 Then Exit For
+Next y
 
-REM 10. Is player carrying anything at all?
-410 F1=-1:FOR Z=0 TO IL:IF IA(Z)=-1 THEN z=Z:Z=IL:NEXT Z:Z=z:GOTO 550 ELSE NEXT Z:F1=0:GOTO 550
-
-REM 11. Is player carrying nothing?
-420 F1=0:FOR Z=0 TO IL:IF IA(Z)=-1 THEN z=Z:Z=IL:NEXT Z:Z=z:GOTO 550 ELSE NEXT Z:F1=-1:GOTO 550
-
-REM 1. Is player carrying object LL?
-430 F1=IA(LL)=-1:GOTO 550
-
-REM 12. Is obj LL not being carried by player and not in current room?
-440 F1=IA(LL)<>-1 AND IA(LL)<>R:GOTO 550
-
-REM 2. Is player in room with object LL?
-450 F1=IA(LL)=R:GOTO 550
-
-REM 13. Is obj LL not in the storeroom (room zero)?
-460 F1=IA(LL)<>0:GOTO 550
-
-REM 3. Is player in room with obj LL or carrying it?
-470 F1=IA(LL)=R OR IA(LL)=-1:GOTO 550
-
-REM 14. Is obj LL in storeroom (room zero)?
-480 F1=IA(LL)=0:GOTO 550
-
-REM 4. Is player in room LL?
-490 F1=R=LL:GOTO 550
-
-REM 5. Is player carrying obj LL, or obj LL isn't in current room?
-500 F1=IA(LL)<>R:GOTO 550
-
-REM 6. Is player not carrying obj LL?
-510 F1=IA(LL)<>-1:GOTO 550
-
-REM 7. Is player not in room LL?
-520 F1=R<>LL:GOTO 550
-
-REM 8. Is numbered flag-bit set?
-530 F1=SF AND INT(2^LL+.5):F1=F1<>0:GOTO 550
-
-REM 9. Is numbered flag-bit clear?
-540 F1=SF AND INT(2^LL+.5):F1=F1=0:GOTO 550
-
-550 F2=F2 AND F1
-'IF F2 THEN NEXT Y ELSE y=Y:Y=5:NEXT Y:Y=y:NEXT X:GOTO 990
-If f2 Then Next Y : Goto 560
-Next X : Goto 990
+If Not f2 Then Next x
 
 REM Process the commands
 560 IP=0:FOR Y=1 TO 4:K=INT((Y-1)/2)+6:ON Y GOTO 570,580,570,580
@@ -144,11 +108,10 @@ REM Process the commands
 590 IF AC>101 THEN Goto 600 ELSE IF AC=0 THEN Goto 960 ELSE IF AC<52 THEN Print MS$(AC):GOTO 960:ELSE ON AC-51 GOTO 660,700,740,760,770,780,790,760,810,830,840,850,860,870,890,920,930,940,950,710,750
 600 Print MS$(AC-50) : GOTO 960
 
-610 L=DF:IFL THEN L=DF AND IA(9)<>R AND IA(9)<>-1:IF L PRINT"DANGEROUS TO MOVE IN THE DARK!"
-620 IFNV(1)<1PRINT"GIVE ME A DIRECTION TOO.":GOTO1040
-630 K=RM(R,NV(1)-1):IFK>=1 ELSE IFL THENPRINT"I FELL DOWN AND BROKE MY NECK.":K=RL:DF=0:ELSE PRINT"I CAN'T GO IN THAT DIRECTION":GOTO1040
-640 IF NOT L Cls
-650 R=K:GOSUB240:GOTO1040
+' Go <Direction>
+610
+action_go()
+Goto 1040
 
 REM 52. GETx
 660 L=0:FORZ=1TOIL:IFIA(Z)=-1LETL=L+1
@@ -405,7 +368,94 @@ Sub parse(s$)
     EndIf
   Next i
 
-  Print nv(0), nv(1)
+  Print "verb =" nv(0) ", noun =" nv(1)
 
   f = nv(0) < 1 Or Len(nt$(1)) > 0 And nv(1) < 1
 End Sub
+
+Sub action_go()
+  Local l = df
+  If l Then l = df And ia(9) <> R and ia(9) <> - 1
+  If l Then Print "Dangerous to move in the dark!"
+  If nv(1) < 1 Then Print "Give me a direction too." : Exit Sub
+  Local k = rm(r, nv(1) - 1)
+  If k < 1 Then
+    If l Then
+      Print "I fell down and broke my neck."
+      k = rl
+      df = 0
+    Else
+      Print "I can't go in that direction."
+      Exit Sub
+    EndIf
+  EndIf
+  If Not l Then Cls
+  r = k
+  describe_current_location()
+End Sub
+
+Sub dump_vocab()
+  Local i
+  For i = 0 To nl
+    Print i, nv_str$(i, 0), nv_str$(i, 1)
+  Next i
+End Sub
+
+Function evaluate_condition(code, number)
+  Local i, pass
+  Select Case code
+    Case 0
+      pass = 1
+    Case 1
+      ' Passes if the player is carrying object <number>.
+      pass = (ia(number) = -1)
+    Case 2
+      ' Passes if the player is in the same room (but not carrying) object <number>.
+      pass = (ia(number) = r)
+    Case 3
+      ' Passes if object<number> is available; i.e. carried or in the current room
+      pass = (ia(number) = -1) Or (ia(number) = r)
+    Case 4
+      ' Passes if the player is in room <number>.
+      pass = (r = number)
+    Case 5
+      ' Passes if the player is carrying object <number> or it is in a different room.
+      pass = (ia(number) <> r)
+    Case 6
+      ' Passes if the player is not carrying object <number>.
+      pass = (ia(number) <> -1)
+    Case 7
+      ' Passes if the player is not in room <number>.
+      pass = (r <> number)
+    Case 8
+      ' Passes if numbered flag-bit set.
+      pass = (sf And Int(2^number + 0.5)) <> 0
+    Case 9
+      ' Passes if numbered flag-bit clear.
+      pass = (sf And Int(2^number + 0.5)) = 0
+    Case 10
+      ' Passes if the player is carrying anything.
+      For i = 0 To il
+        If ia(i) = -1 Then pass = 1 : Exit For
+      Next i
+    Case 11
+      ' Passes if the player is carrying nothing.
+      pass = 1
+      For i = 0 To il
+        If ia(i) = -1 Then pass = 0 : Exit For
+      Next i
+    Case 12
+      ' Passes if object <number> is not available; i.e. not carried or in the current room.
+      pass = (ia(number) <> -1) And (ia(number) <> r)
+    Case 13
+      ' Passes if object <number> is not in the store room (0)
+      pass = (ia(number) <> 0)
+    Case 14
+      ' Passes if object <number> is in the store room (0)
+      pass = (ia(number) = 0)
+    Case Else
+      Error "Unknown condition: " + Str$(code)
+  End Select
+
+  evaluate_condition = pass
+End Function
