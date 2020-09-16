@@ -22,83 +22,111 @@ Dim lx ' Light duration
 Dim nv(1) ' verb & noun of current command
 Dim df ' Dark flag
 Dim r  ' Current room
-Dim sf ' Status flag
-Dim zi
-Dim tp$
-Dim v, w
+Dim sf ' Status flags
+'Dim zi
+'Dim tp$
+'Dim v, w
 Dim f, f1, f2, f3
-Dim n, ll, ip
-Dim kk$
+Dim ip
+'Dim n, ll, ip
+'Dim kk$
 Dim x ' 1st loop index
 Dim y ' 2nd loop index
-Dim l
-Dim cmd(3)
+'Dim l
 
 Cls
 
-REM L% = screen width in chars
-'20 MODE7:VDU23,0,10,8;0;0;0;23,0,11,12;0;0;0;:PRINT:D=-1:DIM S% 255:L%=40:*FX11,0
-
-REM X=Y=Z:K=R=V:N=LL=F:TP$=K$:W=IP=P:
-
-40 K=0':Z$="I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
-
 read_data("pirate.dat")
-intro()
+show_intro()
 
-100 R=AR:LX=LT:DF=0:SF=0
+r = ar  ' current room = starting room
+lx = lt ' light source starts full
+df = 0  ' dark flag is unset
+sf = 0  ' status flags are clear
 
 'INPUT "USE OLD 'SAVED' GAME? ", S$
 'IF LEFT$(S$,1)<>"Y" THEN Goto 130
 '110 IFD<>-1THENCLOSE:OPEN"I",D,SV$ELSEINPUT"READY SAVED TAPE "K$:PRINT;INT(IL*5/60)+1;" MINUTES"
 '120 d=OPENIN("SAV"):INPUT#d,SF,LX,DF,R:FORX=0TOIL:INPUT#d,IA(X):NEXT:CLOSE#d:IFD<>-1CLOSE
 
-describe_current_location()
-GOTO 160
+main_loop()
 
-140
-INPUT "TELL ME WHAT TO DO? ", TP$
-PRINT
-parse(tp$)
-'GOSUB 170 ' Parse TP$
-IF F Then PRINT "YOU USE WORD(S) I DON'T KNOW" : GOTO 140
-150 GOSUB 360
-If lx < 0 Then Print "LIGHT HAS RUN OUT!" : ia(9) = 0 : Goto 160
-If lx < 25 Then Print "LIGHT RUNS OUT IN " Str$(lx) "TURNS!"
-160 NV(0)=0 : GOSUB 360 : GOTO 140
+Sub main_loop()
+  Do
+    Print
+    describe_room() ' TODO: shouldn't be describing this every time through the loop
+    nv(0) = 0 ' no verb
+    do_actions() ' automatic actions
+    Print
+    prompt_for_input()
+    Print
+    do_actions() ' non-automatic actions
+    handle_light()
+  Loop
+End Sub
 
-REM *** Search for matching actions ***
+Sub prompt_for_input()
+  Local s$
 
-REM Find a matching action
-360 F2=-1:F=-1:F3=0
+  Do
+    Input "Tell me what to do ? ", s$
+    parse(s$)
+    If Not f Then Exit Do
+    Print "You use word(s) I don't know!"
+  Loop
 
-' Go <Direction>
-IF NV(0) = 1 AND NV(1) < 7 THEN Goto 610
+End Sub
 
-FOR x = 0 to cl
-  v = Int(ca(x, 0) / 150) ' action - verb
-  n = ca(x, 0) - v * 150  ' action - noun
-  If v = 0 Then
-    ' Automatic action, n is the probability
-    f = 0
-    If rnd(100) <= n Then Goto 400
+Sub handle_light()
+  ' If carrying the lit light source ...
+  If ia(9) = -1 Then
+    lx = lx - 1 ' decrement its duration
+    If lx < 0 Then
+      Print "Light has run out!"
+      ia(9) = 0
+    ElseIf lx < 25 Then
+      Print "Light runs out in " Str$(lx) " turns!"
+    EndIf
   EndIf
-  If nv(0) = v And nv(1) = n Then Goto 400
-  If nv(0) = v And n = 0 Then Goto 400
-Next x
+End Sub
+
+Sub do_actions()
+  Local n, v
+  Local k, ll, w
+  Local cmd(3)
+
+  f = 1 : f2 = 1 : f3 = 0
+
+  ' Handle "go <direction>"
+  If nv(0) = 1 And nv(1) < 7 Then
+    action_go()
+    Exit Sub
+  EndIf
+
+  For x = 0 to cl
+    v = Int(ca(x, 0) / 150) ' action - verb
+    n = ca(x, 0) - v * 150  ' action - noun
+    If v = 0 Then
+      ' Automatic action, n is the probability
+      f = 0
+      If Rnd(100) <= n Then Goto 400
+    EndIf
+    If nv(0) = v And nv(1) = n Then Goto 400
+    If nv(0) = v And n = 0 Then Goto 400
+  Next x
 
 Goto 990
 
 REM Process the conditions                        K=condition code, LL="number"
-400 Print "DEBUG: Process condition:"; x
-F2 = 1 : F = 0 : F3 = 1
-FOR y = 1 TO 5
-  W = CA(X,Y)
-  LL = INT(W/20) ' ll = <number>
-  K = W -LL*20   ' k = condition code
-  f2 = f2 And evaluate_condition(k, ll)
-  If Not f2 Then Exit For
-Next y
+400
+  f = 0 : f2 = 1 : f3 = 1
+  For y = 1 To 5
+    W = CA(X,Y)
+    LL = INT(W/20) ' ll = <number>
+    K = W -LL*20   ' k = condition code
+    f2 = f2 And evaluate_condition(k, ll)
+    If Not f2 Then Exit For
+  Next y
 
 If Not f2 Then Next x
 
@@ -106,7 +134,7 @@ REM Process the commands
 IP=0
 cmd(0) = Int(ca(x, 6) / 150)
 cmd(1) = ca(x, 6) - cmd(0) * 150
-cmd(2) = Int(xa(x, 7) / 150)
+cmd(2) = Int(ca(x, 7) / 150)
 cmd(3) = ca(x, 7) - cmd(2) * 150
 
 For y = 0 To 3
@@ -121,9 +149,6 @@ Next y
 '590 IF AC>101 THEN Goto 600 ELSE IF AC=0 THEN Goto 960 ELSE IF AC<52 THEN Print MS$(AC):GOTO 960:ELSE ON AC-51 GOTO 660,700,740,760,770,780,790,760,810,830,840,850,860,870,890,920,930,940,950,710,750
 '600 Print MS$(AC-50) : GOTO 960
 
-' Go <Direction>
-610
-action_go()
 Goto 1040
 
 REM Next command
@@ -165,6 +190,8 @@ REM Automatically GET or DROP
 1210 IF K=0 IF NOT F3 PRINT"ITS BEYOND MY POWER TO DO THAT":F=0
 1220 IF K<>0 THEN F=0
 1230 RETURN
+
+End Sub
 
 Sub read_data(f$)
   f$ = "pirate.dat"
@@ -211,7 +238,7 @@ REM 1295 P.NV$(X,Y),NV$(X+1,Y),NV$(X+2,Y),NV$(X+3,Y),NV$(X+4,Y),NV$(X+5,Y),NV$(X
   Close #1
 End Sub
 
-Sub intro()
+Sub show_intro()
   Local s$
 
   Cls
@@ -229,7 +256,7 @@ Sub intro()
   Cls
 End Sub
 
-Sub describe_current_location()
+Sub describe_room()
   Local i, k, p
 
   If df Then
@@ -336,7 +363,7 @@ Sub action_go()
 End Sub
 
 Sub do_command(cmd)
-  Local i, x, y
+  Local i, p, x, y
 
   Select Case cmd
     Case 0
@@ -356,33 +383,29 @@ Sub do_command(cmd)
       Next i
       If x > mx Then Print "I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
       Goto 970 ' TODO: stop processing non-automatic actions
-      Gosub 1050
+      p = get_parameter()
       ia(p) = -1
-      ' Goto 960
 
     Case 53
       ' DROPx
       ' Drop the Par #1 object in the current room.
       ' The object may be carried or in any other room
-      Gosub 1050
+      p = get_parameter()
       ia(p) = r
-      ' Goto 960
 
     Case 54
       ' GOTOy
       ' Move the player to the Par #1 room.
       ' This command should be followed by a DspRM (64) command.
       ' Also it may need to be followed by a NIGHT (56) or DAY (57) command.
-      Gosub 1050
+      p = get_parameter()
       r = p
-      ' Goto 960
 
     Case 55, 59
       ' x->RM0
       ' Move the Par #1 object to room 0 (the storeroom).
-      Gosub 1050
+      p = get_parameter()
       ia(p) = 0
-      ' Goto 960
 
     Case 56
       ' NIGHT
@@ -390,28 +413,24 @@ Sub do_command(cmd)
       ' It will be dark if the artificial light source is not available,
       ' so this should be followed by a DspRM (64) command.
       df = 1 ' TODO: this isn't a flag bit ! difference between interpreter versions ?
-      ' Goto 960
 
     Case 57
       ' DAY
       ' Clear the darkness flag-bit (15).
       ' This should be followed by a DspRM (64) command.
       df = 0
-      ' Goto 960
 
     Case 58
       ' SETz
       ' Set the Par #1 flag-bit.
-      Gosub 1050
+      p = get_parameter()
       sf = sf Or Int(0.5 + 2^p)
-      ' Goto 960
 
     Case 60
       ' CLRz
       ' Clear the Par #1 flag-bit.
-      Gosub 1050
+      p = get_parameter()
       sf = sf And Not Int(0.5 + 2^p)
-      ' Goto 960
 
     Case 61
       ' DEAD
@@ -422,19 +441,15 @@ Sub do_command(cmd)
       r = rl
       df = 0
       do_command(64)
-      ' Goto 960
 
     Case 62
       ' x->y
       ' Move the Par #1 object to the Par #2 room.
       ' This will automatically display the room if the object came from,
       ' or went to the current room.
-      Gosub 1050
-      x = p
-      Gosub 1050
-      ia(x) = p
+      x = get_parameter()
+      ia(x) = get_parameter()
       ' TODO: This isn't automatically displaying the room ?
-      ' Goto 960
 
     Case 63
       ' FINI
@@ -519,12 +534,11 @@ Sub do_command(cmd)
       ' This command exchanges the room locations of the Par #1 object and the
       ' Par #2 object. If the objects in the current room change, the new
       ' description will be displayed.
-      Gosub 1050
-      x = p
-      Gosub 1050
-      y = ia(p)
-      ia(p) = ia(x)
-      ia(x) = y
+      x = get_parameter() ' x = object 1
+      y = get_parameter() ' y = object 2
+      p = ia(x)           ' p = location of object 1
+      ia(x) = ia(y)
+      ia(y) = p
 
     Case Else
       Error "Unknown command:" cmd
@@ -532,6 +546,19 @@ Sub do_command(cmd)
   End Select
 
 End Sub
+
+Function get_parameter()
+ Local m, p, w
+
+ Do
+   ip = ip + 1
+   w = ca(x, ip)
+   p = Int(w / 20)
+   m = w - p * 20
+ Loop While m <> 0
+
+ get_parameter = p
+End Function
 
 Sub print_object_list(rm)
   Local count, i, p
