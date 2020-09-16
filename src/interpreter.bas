@@ -1,5 +1,6 @@
-REM COPYRIGHT SCOTT ADAMS. 1978
-REM converted to BBC BASIC in 2020
+' Scott Adams Adventure Game Interpreter for Maximite
+' MMBasic port (c) Thomas Hugo Williams 2020
+' Original TRS-80 code (c) Scott Adams 1978
 
 Option Explicit On
 Option Default Integer
@@ -23,16 +24,10 @@ Dim nv(1) ' verb & noun of current command
 Dim df ' Dark flag
 Dim r  ' Current room
 Dim sf ' Status flags
-'Dim zi
-'Dim tp$
-'Dim v, w
 Dim f, f1, f2, f3
 Dim ip
-'Dim n, ll, ip
-'Dim kk$
-Dim x ' 1st loop index
-Dim y ' 2nd loop index
-'Dim l
+Dim x  ' 1st loop index
+Dim y  ' 2nd loop index
 
 Cls
 
@@ -50,6 +45,65 @@ sf = 0  ' status flags are clear
 '120 d=OPENIN("SAV"):INPUT#d,SF,LX,DF,R:FORX=0TOIL:INPUT#d,IA(X):NEXT:CLOSE#d:IFD<>-1CLOSE
 
 main_loop()
+End
+
+Sub read_data(f$)
+  f$ = "pirate.dat"
+  Open f$ For Input AS 1
+  Input #1, il, cl, nl, rl, mx, ar, tt, ln, lt, ml, tr
+  Dim ca(cl, 7)      ' action table
+  Dim nv_str$(nl, 1) ' vocabulary table - verbs at index 0, nouns at index 1
+  Dim ia_str$(il)    ' object descriptions
+  Dim ia(il)         ' object locations
+  Dim rs$(rl)        ' room descriptions
+  Dim rm(rl, 5)      ' room exits: N, S, E, W, U, D
+  Dim ms$(ml)        ' messages table
+
+  Local i, j
+
+  ' Read action table.
+  For i = 0 To cl Step 2
+    j = i + 1
+    Input #1,ca(i,0),ca(i,1),ca(i,2),ca(i,3),ca(i,4),ca(i,5),ca(i,6),ca(i,7),ca(j,0),ca(j,1),ca(j,2),ca(j,3),ca(j,4),ca(j,5),ca(j,6),ca(j,7)
+  Next i
+
+  ' Read vocabulary table.
+  For i = 0 To nl Step 10
+    For j = 0 TO 1
+      Input #1,NV_STR$(i,j),NV_STR$(i+1,j),NV_STR$(i+2,j),NV_STR$(i+3,j),NV_STR$(i+4,j),NV_STR$(i+5,j),NV_STR$(i+6,j),NV_STR$(i+7,j),NV_STR$(i+8,j),NV_STR$(i+9,j)
+    Next j
+  Next i
+
+  ' Read rooms.
+  For i = 0 TO rl : INPUT #1, rm(i,0),rm(i,1),rm(i,2),rm(i,3),rm(i,4),rm(i,5),rs$(i) : Next i
+
+  ' Read messages.
+  For i = 0 TO ml : Input #1, ms$(i) : Next i
+
+  ' Read objects.
+  Dim i2(il)
+  For i = 0 TO il : Input #1, ia_str$(i),ia(i):i2(i)=ia(i) : Next i
+
+  Close #1
+End Sub
+
+Sub show_intro()
+  Local s$
+
+  Cls
+' Print'"*** WELCOME TO ADVENTURE LAND.(#4.6) ***":PRINT:PRINT" UNLESS TOLD DIFFERENTLY YOU MUST FIND"'"*TREASURES* AND RETURN THEM TO THEIR"'"PROPER PLACE!"
+  Print "I'M YOUR PUPPET. GIVE ME ENGLISH COMMANDS THAT ";
+  Print "CONSIST OF A NOUN AND VERB. SOME EXAMPLES..."
+  Print
+  Print "TO FIND OUT WHAT YOU'RE CARRYING YOU MIGHT SAY: TAKE INVENTORY"
+  Print "TO GO INTO A HOLE YOU MIGHT SAY: GO HOLE"
+  Print "TO SAVE CURRENT GAME: SAVE GAME"
+  Print
+  Print "YOU WILL AT TIMES NEED SPECIAL ITEMS TO DO THINGS, BUT I'M SURE YOU'LL BE A GOOD ADVENTURER AND FIGURE THESE THINGS OUT."
+  Print
+  Input "HAPPY ADVENTURING... HIT ENTER TO START", s$
+  Cls
+End Sub
 
 Sub main_loop()
   Do
@@ -65,29 +119,48 @@ Sub main_loop()
   Loop
 End Sub
 
-Sub prompt_for_input()
-  Local s$
+Sub describe_room()
+  Local i, k, p
 
-  Do
-    Input "Tell me what to do ? ", s$
-    parse(s$)
-    If Not f Then Exit Do
-    Print "You use word(s) I don't know!"
-  Loop
-
-End Sub
-
-Sub handle_light()
-  ' If carrying the lit light source ...
-  If ia(9) = -1 Then
-    lx = lx - 1 ' decrement its duration
-    If lx < 0 Then
-      Print "Light has run out!"
-      ia(9) = 0
-    ElseIf lx < 25 Then
-      Print "Light runs out in " Str$(lx) " turns!"
+  If df Then
+    ' Object 9 is the torch.
+    If ia(9) <> -1 And ia(9) <> r Then
+      Print "I can't see, its too dark!"
+      Exit Sub
     EndIf
   EndIf
+
+  If Left$(rs$(r), 1) = "*" Then
+    Print Mid$(rs$(r), 2)
+  Else
+    Print "I'm in a " + rs$(r)
+  EndIf
+
+  Print "Obvious exits: ";
+  k = 0
+  For i = 0 To 5
+    If rm(r, i) <> 0 Then
+      Print nv$(i + 1, 1) " ";
+      k = k + 1
+    EndIf
+  Next i
+  If k = 0 Then Print "NONE" Else Print
+
+  k = 0
+  For i = 0 To il
+    If ia(i) = r Then
+      If k = 0 Then Print "Visible items here: ";
+      k = k + 1
+      If k > 1 Then Print ", ";
+      p = InStr(ia_str$(i), "/")
+      If p < 1 Then
+        Print ia_str$(i);
+      Else
+        Print Left$(ia_str$(i), p - 1);
+      EndIf
+    EndIf
+  Next i
+  Print
 End Sub
 
 Sub do_actions()
@@ -99,7 +172,7 @@ Sub do_actions()
 
   ' Handle "go <direction>"
   If nv(0) = 1 And nv(1) < 7 Then
-    action_go()
+    go_direction()
     Exit Sub
   EndIf
 
@@ -193,155 +266,7 @@ REM Automatically GET or DROP
 
 End Sub
 
-Sub read_data(f$)
-  f$ = "pirate.dat"
-  Open f$ For Input AS 1
-  Input #1, il, cl, nl, rl, mx, ar, tt, ln, lt, ml, tr
-'1270 DIM NV(1)
-  Dim ca(cl, 7)      ' action table
-  Dim nv_str$(nl, 1) ' vocabulary table - verbs at index 0, nouns at index 1
-  Dim ia_str$(il)    ' object descriptions
-  Dim ia(il)         ' object locations
-  Dim rs$(rl)        ' room descriptions
-  Dim rm(rl, 5)      ' room exits: N, S, E, W, U, D
-  Dim ms$(ml)        ' messages table
-'Dim NT$(1)
-'Dim I2(IL)
-'Dim x, y
-
-  Local i, j
-
-  ' Read action table.
-  For i = 0 To cl Step 2
-    j = i + 1
-    Input #1,ca(i,0),ca(i,1),ca(i,2),ca(i,3),ca(i,4),ca(i,5),ca(i,6),ca(i,7),ca(j,0),ca(j,1),ca(j,2),ca(j,3),ca(j,4),ca(j,5),ca(j,6),ca(j,7)
-  Next i
-
-  ' Read vocabulary table.
-  For i = 0 To nl Step 10
-   For j = 0 TO 1
-    Input #1,NV_STR$(i,j),NV_STR$(i+1,j),NV_STR$(i+2,j),NV_STR$(i+3,j),NV_STR$(i+4,j),NV_STR$(i+5,j),NV_STR$(i+6,j),NV_STR$(i+7,j),NV_STR$(i+8,j),NV_STR$(i+9,j)
-REM 1295 P.NV$(X,Y),NV$(X+1,Y),NV$(X+2,Y),NV$(X+3,Y),NV$(X+4,Y),NV$(X+5,Y),NV$(X+6,Y),NV$(X+7,Y),NV$(X+8,Y),NV$(X+9,Y)
-    Next j
-  Next i
-
-  ' Read rooms.
-  For i = 0 TO rl : INPUT #1, rm(i,0),rm(i,1),rm(i,2),rm(i,3),rm(i,4),rm(i,5),rs$(i) : Next i
-
-  ' Read messages.
-  For i = 0 TO ml : Input #1, ms$(i) : Next i
-
-  ' Read objects.
-  Dim i2(il)
-  For i = 0 TO il : Input #1, ia_str$(i),ia(i):i2(i)=ia(i) : Next i
-
-  Close #1
-End Sub
-
-Sub show_intro()
-  Local s$
-
-  Cls
-' Print'"*** WELCOME TO ADVENTURE LAND.(#4.6) ***":PRINT:PRINT" UNLESS TOLD DIFFERENTLY YOU MUST FIND"'"*TREASURES* AND RETURN THEM TO THEIR"'"PROPER PLACE!"
-  Print "I'M YOUR PUPPET. GIVE ME ENGLISH COMMANDS THAT ";
-  Print "CONSIST OF A NOUN AND VERB. SOME EXAMPLES..."
-  Print
-  Print "TO FIND OUT WHAT YOU'RE CARRYING YOU MIGHT SAY: TAKE INVENTORY"
-  Print "TO GO INTO A HOLE YOU MIGHT SAY: GO HOLE"
-  Print "TO SAVE CURRENT GAME: SAVE GAME"
-  Print
-  Print "YOU WILL AT TIMES NEED SPECIAL ITEMS TO DO THINGS, BUT I'M SURE YOU'LL BE A GOOD ADVENTURER AND FIGURE THESE THINGS OUT."
-  Print
-  Input "HAPPY ADVENTURING... HIT ENTER TO START", s$
-  Cls
-End Sub
-
-Sub describe_room()
-  Local i, k, p
-
-  If df Then
-    ' Object 9 is the torch.
-    If ia(9) <> -1 And ia(9) <> r Then
-      Print "I can't see, its too dark!"
-      Exit Sub
-    EndIf
-  EndIf
-
-  If Left$(rs$(r), 1) = "*" Then
-    Print Mid$(rs$(r), 2)
-  Else
-    Print "I'm in a " + rs$(r)
-  EndIf
-
-  Print "Obvious exits: ";
-  k = 0
-  For i = 0 To 5
-    If rm(r, i) <> 0 Then
-      Print nv$(i + 1, 1) " ";
-      k = k + 1
-    EndIf
-  Next i
-  If k = 0 Then Print "NONE" Else Print
-
-  k = 0
-  For i = 0 To il
-    If ia(i) = r Then
-      If k = 0 Then Print "Visible items here: ";
-      k = k + 1
-      If k > 1 Then Print ", ";
-      p = InStr(ia_str$(i), "/")
-      If p < 1 Then
-        Print ia_str$(i);
-      Else
-        Print Left$(ia_str$(i), p - 1);
-      EndIf
-    EndIf
-  Next i
-  Print
-End Sub
-
-Sub parse(s$)
-  Local i, j, k, nt$(2), w$
-  nt$(0) = "" ' current verb
-  nt$(1) = "" ' current noun
-
-  For i = 1 To Len(s$)
-    If Mid$(s$, i, 1) = " " Then
-      k = 1
-    Else
-      nt$(k) = nt$(k) + Mid$(s$, i, 1)
-    EndIf
-  Next i
-
-  nt$(0) = LCase$(Left$(nt$(0), ln))
-  nt$(1) = LCase$(Left$(nt$(1), ln))
-
-  For i = 0 To 1
-    ' i = 0 for verb, 1 for noun.
-    nv(i) = 0
-    If nt$(i) <> "" Then
-      For j = 0 To nl
-        w$ = nv_str$(j, i)
-        If Left$(w$, 1) = "*" Then w$ = Mid$(w$, 2)
-        If i = 1 And j < 7 Then w$ = Left$(w$, ln)
-        If nt$(i) = LCase$(w$) Then
-          ' Word found, if it's a synonym then use previous word
-          nv(i) = j
-          Do While Left$(nv_str$(nv(i), i), 1) = "*"
-            nv(i) = nv(i) - 1
-          Loop
-          Exit For
-        EndIf
-      Next j
-    EndIf
-  Next i
-
-  Print "verb =" nv(0) ", noun =" nv(1)
-
-  f = nv(0) < 1 Or Len(nt$(1)) > 0 And nv(1) < 1
-End Sub
-
-Sub action_go()
+Sub go_direction()
   Local l = df
   If l Then l = df And ia(9) <> R and ia(9) <> - 1
   If l Then Print "Dangerous to move in the dark!"
@@ -361,6 +286,65 @@ Sub action_go()
   r = k
   describe_current_location()
 End Sub
+
+Function evaluate_condition(code, number)
+  Local i, pass
+  Select Case code
+    Case 0
+      pass = 1
+    Case 1
+      ' Passes if the player is carrying object <number>.
+      pass = (ia(number) = -1)
+    Case 2
+      ' Passes if the player is in the same room (but not carrying) object <number>.
+      pass = (ia(number) = r)
+    Case 3
+      ' Passes if object<number> is available; i.e. carried or in the current room
+      pass = (ia(number) = -1) Or (ia(number) = r)
+    Case 4
+      ' Passes if the player is in room <number>.
+      pass = (r = number)
+    Case 5
+      ' Passes if the player is carrying object <number> or it is in a different room.
+      pass = (ia(number) <> r)
+    Case 6
+      ' Passes if the player is not carrying object <number>.
+      pass = (ia(number) <> -1)
+    Case 7
+      ' Passes if the player is not in room <number>.
+      pass = (r <> number)
+    Case 8
+      ' Passes if numbered flag-bit set.
+      pass = (sf And Int(2^number + 0.5)) <> 0
+    Case 9
+      ' Passes if numbered flag-bit clear.
+      pass = (sf And Int(2^number + 0.5)) = 0
+    Case 10
+      ' Passes if the player is carrying anything.
+      For i = 0 To il
+        If ia(i) = -1 Then pass = 1 : Exit For
+      Next i
+    Case 11
+      ' Passes if the player is carrying nothing.
+      pass = 1
+      For i = 0 To il
+        If ia(i) = -1 Then pass = 0 : Exit For
+      Next i
+    Case 12
+      ' Passes if object <number> is not available; i.e. not carried or in the current room.
+      pass = (ia(number) <> -1) And (ia(number) <> r)
+    Case 13
+      ' Passes if object <number> is not in the store room (0)
+      pass = (ia(number) <> 0)
+    Case 14
+      ' Passes if object <number> is in the store room (0)
+      pass = (ia(number) = 0)
+    Case Else
+      Error "Unknown condition: " + Str$(code)
+  End Select
+
+  evaluate_condition = pass
+End Function
 
 Sub do_command(cmd)
   Local i, p, x, y
@@ -579,68 +563,75 @@ Sub print_object_list(rm)
   If count = 0 Then Print "Nothing" Else Print
 End Sub
 
+Sub prompt_for_input()
+  Local s$
+
+  Do
+    Input "Tell me what to do ? ", s$
+    parse(s$)
+    If Not f Then Exit Do
+    Print "You use word(s) I don't know!"
+  Loop
+
+End Sub
+
+Sub parse(s$)
+  Local i, j, k, nt$(2), w$
+  nt$(0) = "" ' current verb
+  nt$(1) = "" ' current noun
+
+  For i = 1 To Len(s$)
+    If Mid$(s$, i, 1) = " " Then
+      k = 1
+    Else
+      nt$(k) = nt$(k) + Mid$(s$, i, 1)
+    EndIf
+  Next i
+
+  nt$(0) = LCase$(Left$(nt$(0), ln))
+  nt$(1) = LCase$(Left$(nt$(1), ln))
+
+  For i = 0 To 1
+    ' i = 0 for verb, 1 for noun.
+    nv(i) = 0
+    If nt$(i) <> "" Then
+      For j = 0 To nl
+        w$ = nv_str$(j, i)
+        If Left$(w$, 1) = "*" Then w$ = Mid$(w$, 2)
+        If i = 1 And j < 7 Then w$ = Left$(w$, ln)
+        If nt$(i) = LCase$(w$) Then
+          ' Word found, if it's a synonym then use previous word
+          nv(i) = j
+          Do While Left$(nv_str$(nv(i), i), 1) = "*"
+            nv(i) = nv(i) - 1
+          Loop
+          Exit For
+        EndIf
+      Next j
+    EndIf
+  Next i
+
+  Print "verb =" nv(0) ", noun =" nv(1)
+
+  f = nv(0) < 1 Or Len(nt$(1)) > 0 And nv(1) < 1
+End Sub
+
+Sub handle_light()
+  ' If carrying the lit light source ...
+  If ia(9) = -1 Then
+    lx = lx - 1 ' decrement its duration
+    If lx < 0 Then
+      Print "Light has run out!"
+      ia(9) = 0
+    ElseIf lx < 25 Then
+      Print "Light runs out in " Str$(lx) " turns!"
+    EndIf
+  EndIf
+End Sub
+
 Sub dump_vocab()
   Local i
   For i = 0 To nl
     Print i, nv_str$(i, 0), nv_str$(i, 1)
   Next i
 End Sub
-
-Function evaluate_condition(code, number)
-  Local i, pass
-  Select Case code
-    Case 0
-      pass = 1
-    Case 1
-      ' Passes if the player is carrying object <number>.
-      pass = (ia(number) = -1)
-    Case 2
-      ' Passes if the player is in the same room (but not carrying) object <number>.
-      pass = (ia(number) = r)
-    Case 3
-      ' Passes if object<number> is available; i.e. carried or in the current room
-      pass = (ia(number) = -1) Or (ia(number) = r)
-    Case 4
-      ' Passes if the player is in room <number>.
-      pass = (r = number)
-    Case 5
-      ' Passes if the player is carrying object <number> or it is in a different room.
-      pass = (ia(number) <> r)
-    Case 6
-      ' Passes if the player is not carrying object <number>.
-      pass = (ia(number) <> -1)
-    Case 7
-      ' Passes if the player is not in room <number>.
-      pass = (r <> number)
-    Case 8
-      ' Passes if numbered flag-bit set.
-      pass = (sf And Int(2^number + 0.5)) <> 0
-    Case 9
-      ' Passes if numbered flag-bit clear.
-      pass = (sf And Int(2^number + 0.5)) = 0
-    Case 10
-      ' Passes if the player is carrying anything.
-      For i = 0 To il
-        If ia(i) = -1 Then pass = 1 : Exit For
-      Next i
-    Case 11
-      ' Passes if the player is carrying nothing.
-      pass = 1
-      For i = 0 To il
-        If ia(i) = -1 Then pass = 0 : Exit For
-      Next i
-    Case 12
-      ' Passes if object <number> is not available; i.e. not carried or in the current room.
-      pass = (ia(number) <> -1) And (ia(number) <> r)
-    Case 13
-      ' Passes if object <number> is not in the store room (0)
-      pass = (ia(number) <> 0)
-    Case 14
-      ' Passes if object <number> is in the store room (0)
-      pass = (ia(number) = 0)
-    Case Else
-      Error "Unknown condition: " + Str$(code)
-  End Select
-
-  evaluate_condition = pass
-End Function
