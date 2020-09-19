@@ -106,15 +106,19 @@ Sub show_intro()
 End Sub
 
 Sub main_loop()
+  Local _
   Do
     Print
     describe_room() ' TODO: shouldn't be describing this every time through the loop
     nv(0) = 0 ' no verb
-    do_actions() ' automatic actions
+    _ = do_actions() ' automatic actions
     Print
     prompt_for_input()
     Print
-    do_actions() ' non-automatic actions
+    Select Case do_actions() ' non-automatic actions
+      Case -1 : Print "I don't understand your command."
+      Case -2 : Print "I can't do that yet."
+    End Select
     handle_light()
   Loop
 End Sub
@@ -163,10 +167,8 @@ Sub describe_room()
   Print
 End Sub
 
-Sub do_actions()
-  Local n, v
-  Local k, ll, w
-  Local cmd(3)
+Function do_actions()
+  Local ok, n, v
 
   f = 1 : f2 = 1 : f3 = 0
 
@@ -177,21 +179,88 @@ Sub do_actions()
   EndIf
 
   For x = 0 to cl
+    dump_action(x)
+    ok = 0
     v = Int(ca(x, 0) / 150) ' action - verb
     n = ca(x, 0) - v * 150  ' action - noun
     If v = 0 Then
       ' Automatic action, n is the probability
+      ' TODO: Am I correctly generating numbers in range 1..100
       f = 0
-      If Rnd(100) <= n Then Goto 400
+      ok = (1 + 100 * Rnd()) <= n
     EndIf
-    If nv(0) = v And nv(1) = n Then Goto 400
-    If nv(0) = v And n = 0 Then Goto 400
+    If nv(0) = v And nv(1) = n Then ok = 1
+    If nv(0) = v And n = 0 Then ok = 1
+
+    If ok Then ok = process_conditions(x)
+    If ok Then do_commands(x)
   Next x
+End Function
 
-Goto 990
+Sub dump_action(x)
+  Local cmd(3), noun, verb
 
-REM Process the conditions                        K=condition code, LL="number"
-400
+  verb = Int(ca(x, 0) / 150) ' action - verb
+  noun = ca(x, 0) - verb * 150  ' action - noun
+  cmd(0) = Int(ca(x, 6) / 150)
+  cmd(1) = ca(x, 6) - cmd(0) * 150
+  cmd(2) = Int(ca(x, 7) / 150)
+  cmd(3) = ca(x, 7) - cmd(2) * 150
+
+  Local n$ = Str$(noun)
+  Local v$ = Str$(verb)
+  If verb > 0 Then
+    n$ = get_noun$(noun)
+    v$ = get_verb$(verb)
+  End If
+
+  Print Str$(x) ":" Tab(6) v$ Tab(12) n$ Tab(18);
+  Print get_cmd$(cmd(0)) Tab(28) get_cmd$(cmd(1)) Tab(38) get_cmd$(cmd(2)) Tab(48) get_cmd$(cmd(3))
+End Sub
+
+Function get_verb$(v)
+  get_verb$ = nv_str$(v, 0)
+End Function
+
+Function get_noun$(n)
+  get_noun$ = nv_str$(n, 1)
+End Function
+
+Function get_cmd$(c)
+  Local s$
+  Select Case c
+    Case 0 : s$ = "0"
+    Case 1 To 51 : s$ = "MSG:" + Str$(c)
+    Case 52: s$ = "GETx"
+    Case 53: s$ = "DROPx"
+    Case 54: s$ = "GOTOy"
+    Case 55: s$ = "x->RM0"
+    Case 56: s$ = "NIGHT"
+    Case 57: s$ = "DAY"
+    Case 58: s$ = "SETz"
+    Case 59: s$ = "x->RM0" ' same as 55
+    Case 60: s$ = "CLRz"
+    Case 61: s$ = "DEAD"
+    Case 62: s$ = "x->y"
+    Case 63: s$ = "FINI"
+    Case 64: s$ = "DspRM"
+    Case 65: s$ = "SCORE"
+    Case 66: s$ = "INV"
+    Case 67: s$ = "SET0"
+    Case 68: s$ = "CLR0"
+    Case 69: s$ = "FILL"
+    Case 70: s$ = "CLS"
+    Case 71: s$ = "SAVEz"
+    Case 72: s$ = "EXx,x"
+    Case 102 To 149 : s$ = "MSG:" + Str$(c - 50)
+    Case Else: s$ = "Huh?"
+  End Select
+  get_cmd$ = s$
+End Function
+
+Function process_conditions(x)
+  Local k, ll, w, y
+
   f = 0 : f2 = 1 : f3 = 1
   For y = 1 To 5
     W = CA(X,Y)
@@ -201,31 +270,23 @@ REM Process the conditions                        K=condition code, LL="number"
     If Not f2 Then Exit For
   Next y
 
-If Not f2 Then Next x
+  process_conditions = f2
+End Function
 
-REM Process the commands
-IP=0
-cmd(0) = Int(ca(x, 6) / 150)
-cmd(1) = ca(x, 6) - cmd(0) * 150
-cmd(2) = Int(ca(x, 7) / 150)
-cmd(3) = ca(x, 7) - cmd(2) * 150
+Sub do_commands(x)
+  Local cmd(3)
 
-For y = 0 To 3
-  do_command(cmd(y))
-Next y
+  IP=0
+  cmd(0) = Int(ca(x, 6) / 150)
+  cmd(1) = ca(x, 6) - cmd(0) * 150
+  cmd(2) = Int(ca(x, 7) / 150)
+  cmd(3) = ca(x, 7) - cmd(2) * 150
 
-'FOR Y=1 TO 4
-'  K=INT((Y-1)/2)+6
-'  ON Y GOTO 570,580,570,580
-'570 AC=INT(CA(X,K)/150):GOTO 590
-'580 AC=CA(X,K)-INT(CA(X,K)/150)*150
-'590 IF AC>101 THEN Goto 600 ELSE IF AC=0 THEN Goto 960 ELSE IF AC<52 THEN Print MS$(AC):GOTO 960:ELSE ON AC-51 GOTO 660,700,740,760,770,780,790,760,810,830,840,850,860,870,890,920,930,940,950,710,750
-'600 Print MS$(AC-50) : GOTO 960
-
-Goto 1040
-
-REM Next command
-960 NEXT Y
+  do_command(cmd(0))
+  do_command(cmd(1))
+  do_command(cmd(2))
+  do_command(cmd(3))
+End Sub
 
 REM Stop processing non-automatic actions
 970 IF NV(0)<>0 THEN x=X:X=CL:NEXT X:X=x:GOTO 990
