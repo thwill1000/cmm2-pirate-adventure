@@ -5,22 +5,12 @@
 Option Explicit On
 Option Default Integer
 
+#Include "data.inc"
 #Include "debug.inc"
 
 Dim ac
 Dim k, s$, z$
 Dim d = -1
-Dim il ' Highest numbered object 0..il
-Dim cl ' Highest action number 0..cl
-Dim nl ' Highest vocabulary number 0..nl
-Dim rl ' Highest room number 0..rl
-Dim mx ' Maximum number of objects carried
-Dim ar ' Starting room
-Dim tt ' Number of treasures
-Dim ln ' Word length
-Dim lt ' Time limit
-Dim ml ' Highest message number
-Dim tr ' Treasure room
 Dim lx ' Light duration
 Dim nv(1) ' verb & noun of current command
 Dim df ' Dark flag
@@ -33,7 +23,7 @@ Dim y  ' 2nd loop index
 
 Cls
 
-read_data("pirate.dat")
+dat.read("pirate.dat")
 show_intro()
 
 r = ar  ' current room = starting room
@@ -48,46 +38,6 @@ sf = 0  ' status flags are clear
 
 main_loop()
 End
-
-Sub read_data(f$)
-  f$ = "pirate.dat"
-  Open f$ For Input AS 1
-  Input #1, il, cl, nl, rl, mx, ar, tt, ln, lt, ml, tr
-  Dim ca(cl, 7)      ' action table
-  Dim nv_str$(nl, 1) ' vocabulary table - verbs at index 0, nouns at index 1
-  Dim ia_str$(il)    ' object descriptions
-  Dim ia(il)         ' object locations
-  Dim rs$(rl)        ' room descriptions
-  Dim rm(rl, 5)      ' room exits: N, S, E, W, U, D
-  Dim ms$(ml)        ' messages table
-
-  Local i, j
-
-  ' Read action table.
-  For i = 0 To cl Step 2
-    j = i + 1
-    Input #1,ca(i,0),ca(i,1),ca(i,2),ca(i,3),ca(i,4),ca(i,5),ca(i,6),ca(i,7),ca(j,0),ca(j,1),ca(j,2),ca(j,3),ca(j,4),ca(j,5),ca(j,6),ca(j,7)
-  Next i
-
-  ' Read vocabulary table.
-  For i = 0 To nl Step 10
-    For j = 0 TO 1
-      Input #1,NV_STR$(i,j),NV_STR$(i+1,j),NV_STR$(i+2,j),NV_STR$(i+3,j),NV_STR$(i+4,j),NV_STR$(i+5,j),NV_STR$(i+6,j),NV_STR$(i+7,j),NV_STR$(i+8,j),NV_STR$(i+9,j)
-    Next j
-  Next i
-
-  ' Read rooms.
-  For i = 0 TO rl : INPUT #1, rm(i,0),rm(i,1),rm(i,2),rm(i,3),rm(i,4),rm(i,5),rs$(i) : Next i
-
-  ' Read messages.
-  For i = 0 TO ml : Input #1, ms$(i) : Next i
-
-  ' Read objects.
-  Dim i2(il)
-  For i = 0 TO il : Input #1, ia_str$(i),ia(i):i2(i)=ia(i) : Next i
-
-  Close #1
-End Sub
 
 Sub show_intro()
   Local s$
