@@ -5,6 +5,8 @@
 Option Explicit On
 Option Default Integer
 
+#Include "debug.inc"
+
 Dim ac
 Dim k, s$, z$
 Dim d = -1
@@ -179,7 +181,7 @@ Function do_actions()
   EndIf
 
   For x = 0 to cl
-    dump_action(x)
+    dbg.dump_action(x)
     ok = 0
     v = Int(ca(x, 0) / 150) ' action - verb
     n = ca(x, 0) - v * 150  ' action - noun
@@ -195,67 +197,6 @@ Function do_actions()
     If ok Then ok = process_conditions(x)
     If ok Then do_commands(x)
   Next x
-End Function
-
-Sub dump_action(x)
-  Local cmd(3), noun, verb
-
-  verb = Int(ca(x, 0) / 150) ' action - verb
-  noun = ca(x, 0) - verb * 150  ' action - noun
-  cmd(0) = Int(ca(x, 6) / 150)
-  cmd(1) = ca(x, 6) - cmd(0) * 150
-  cmd(2) = Int(ca(x, 7) / 150)
-  cmd(3) = ca(x, 7) - cmd(2) * 150
-
-  Local n$ = Str$(noun)
-  Local v$ = Str$(verb)
-  If verb > 0 Then
-    n$ = get_noun$(noun)
-    v$ = get_verb$(verb)
-  End If
-
-  Print Str$(x) ":" Tab(6) v$ Tab(12) n$ Tab(18);
-  Print get_cmd$(cmd(0)) Tab(28) get_cmd$(cmd(1)) Tab(38) get_cmd$(cmd(2)) Tab(48) get_cmd$(cmd(3))
-End Sub
-
-Function get_verb$(v)
-  get_verb$ = nv_str$(v, 0)
-End Function
-
-Function get_noun$(n)
-  get_noun$ = nv_str$(n, 1)
-End Function
-
-Function get_cmd$(c)
-  Local s$
-  Select Case c
-    Case 0 : s$ = "0"
-    Case 1 To 51 : s$ = "MSG:" + Str$(c)
-    Case 52: s$ = "GETx"
-    Case 53: s$ = "DROPx"
-    Case 54: s$ = "GOTOy"
-    Case 55: s$ = "x->RM0"
-    Case 56: s$ = "NIGHT"
-    Case 57: s$ = "DAY"
-    Case 58: s$ = "SETz"
-    Case 59: s$ = "x->RM0" ' same as 55
-    Case 60: s$ = "CLRz"
-    Case 61: s$ = "DEAD"
-    Case 62: s$ = "x->y"
-    Case 63: s$ = "FINI"
-    Case 64: s$ = "DspRM"
-    Case 65: s$ = "SCORE"
-    Case 66: s$ = "INV"
-    Case 67: s$ = "SET0"
-    Case 68: s$ = "CLR0"
-    Case 69: s$ = "FILL"
-    Case 70: s$ = "CLS"
-    Case 71: s$ = "SAVEz"
-    Case 72: s$ = "EXx,x"
-    Case 102 To 149 : s$ = "MSG:" + Str$(c - 50)
-    Case Else: s$ = "Huh?"
-  End Select
-  get_cmd$ = s$
 End Function
 
 Function process_conditions(x)
@@ -688,11 +629,4 @@ Sub handle_light()
       Print "Light runs out in " Str$(lx) " turns!"
     EndIf
   EndIf
-End Sub
-
-Sub dump_vocab()
-  Local i
-  For i = 0 To nl
-    Print i, nv_str$(i, 0), nv_str$(i, 1)
-  Next i
 End Sub
