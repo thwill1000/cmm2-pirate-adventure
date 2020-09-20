@@ -27,46 +27,51 @@ Sub dbg.dump(fd)
 End Sub
 
 Sub dbg.dump_actions(fd)
-  Local cmd(3), cond(4, 1), i, j, noun, n$, verb, v$
+  Local i
 
   Print #fd, "ACTIONS"
   Print #fd, "-------"
   Print #fd
 
   For i = 0 To cl
-
-    verb = Int(ca(i, 0) / 150)
-    noun = ca(i, 0) - verb * 150
-
-    For j = 0 To 4
-      cond(j, 1) = Int(ca(i, j + 1) / 20)
-      cond(j, 0) = ca(i, j + 1) - cond(j, 1) * 20
-    Next j    
-
-    cmd(0) = Int(ca(i, 6) / 150)
-    cmd(1) = ca(i, 6) - cmd(0) * 150
-    cmd(2) = Int(ca(i, 7) / 150)
-    cmd(3) = ca(i, 7) - cmd(2) * 150
-
-    If verb = 0 Then
-      n$ = Str$(noun)
-      v$ = Str$(verb)
-    Else
-      n$ = dbg.get_noun$(noun)
-      v$ = dbg.get_verb$(verb)
-    End If
-
-    Print #fd, rpad$(Str$(i) + ":", 6);
-    Print #fd, rpad$(v$, 6);
-    Print #fd, rpad$(n$, 6);
-    For j = 0 To 4
-      Print #fd, rpad$(dbg.get_cond$(cond(j, 0), cond(j, 1)), 9);
-    Next j
-    For j = 0 To 3
-      Print #fd, rpad$(dbg.get_cmd$(cmd(j)), 8);
-    Next j
-    Print #fd
+    fbg.dump_action(fd, i)
   Next i
+End Sub
+
+Sub dbg.dump_action(fd, i)
+  Local cmd(3), cond(4, 1), j, noun, n$, verb, v$
+
+  verb = Int(ca(i, 0) / 150)
+  noun = ca(i, 0) - verb * 150
+
+  For j = 0 To 4
+    cond(j, 1) = Int(ca(i, j + 1) / 20)
+    cond(j, 0) = ca(i, j + 1) - cond(j, 1) * 20
+  Next j
+
+  cmd(0) = Int(ca(i, 6) / 150)
+  cmd(1) = ca(i, 6) - cmd(0) * 150
+  cmd(2) = Int(ca(i, 7) / 150)
+  cmd(3) = ca(i, 7) - cmd(2) * 150
+
+  If verb = 0 Then
+    n$ = Str$(noun)
+    v$ = Str$(verb)
+  Else
+    n$ = dbg.get_noun$(noun)
+    v$ = dbg.get_verb$(verb)
+  End If
+
+  Print #fd, rpad$(Str$(i) + ":", 6);
+  Print #fd, rpad$(v$, 6);
+  Print #fd, rpad$(n$, 6);
+  For j = 0 To 4
+    Print #fd, rpad$(dbg.get_cond$(cond(j, 0), cond(j, 1)), 9);
+  Next j
+  For j = 0 To 3
+    Print #fd, rpad$(dbg.get_cmd$(cmd(j)), 8);
+  Next j
+  Print #fd
 End Sub
 
 Function rpad$(s$, x)

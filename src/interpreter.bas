@@ -16,7 +16,7 @@ Dim nv(1) ' verb & noun of current command
 Dim df ' Dark flag
 Dim r  ' Current room
 Dim sf ' Status flags
-Dim f, f1, f2, f3
+Dim f1, f2, f3
 Dim ip
 Dim x  ' 1st loop index
 Dim y  ' 2nd loop index
@@ -24,7 +24,7 @@ Dim y  ' 2nd loop index
 Cls
 
 dat.read("pirate.dat")
-show_intro()
+'show_intro()
 
 r = ar  ' current room = starting room
 lx = lt ' light source starts full
@@ -59,12 +59,11 @@ End Sub
 
 Sub main_loop()
   Local _
+  describe_room()
   Do
     Print
-    describe_room() ' TODO: shouldn't be describing this every time through the loop
     nv(0) = 0 ' no verb
     _ = do_actions() ' automatic actions
-    Print
     prompt_for_input()
     Print
     Select Case do_actions() ' non-automatic actions
@@ -96,7 +95,7 @@ Sub describe_room()
   k = 0
   For i = 0 To 5
     If rm(r, i) <> 0 Then
-      Print nv$(i + 1, 1) " ";
+      Print nv_str$(i + 1, 1) " ";
       k = k + 1
     EndIf
   Next i
@@ -122,23 +121,22 @@ End Sub
 Function do_actions()
   Local ok, n, v
 
-  f = 1 : f2 = 1 : f3 = 0
+  f1 = 1 : f2 = 1 : f3 = 0
 
   ' Handle "go <direction>"
   If nv(0) = 1 And nv(1) < 7 Then
     go_direction()
-    Exit Sub
+    Exit Function
   EndIf
 
   For x = 0 to cl
-    dbg.dump_action(x)
     ok = 0
     v = Int(ca(x, 0) / 150) ' action - verb
     n = ca(x, 0) - v * 150  ' action - noun
     If v = 0 Then
       ' Automatic action, n is the probability
       ' TODO: Am I correctly generating numbers in range 1..100
-      f = 0
+      f1 = 0
       ok = (1 + 100 * Rnd()) <= n
     EndIf
     If nv(0) = v And nv(1) = n Then ok = 1
@@ -146,18 +144,30 @@ Function do_actions()
 
     If ok Then ok = process_conditions(x)
     If ok Then do_commands(x)
+    If v <> 0 And ok Then Exit For
   Next x
+
+  ' Completed processing automatic actions
+  If nv(0) = 0 Then Exit Function
+
+  If nv(0) = 10 Then do_get(nv(1))
+  If nv(0) = 18 Then do_drop(nv(1))
+
+  If f1 Then do_actions = -1
+  If Not f2 Then do_actions = -2
+
 End Function
 
 Function process_conditions(x)
   Local k, ll, w, y
 
-  f = 0 : f2 = 1 : f3 = 1
+  f1 = 0 : f2 = 1 : f3 = 1
   For y = 1 To 5
     W = CA(X,Y)
     LL = INT(W/20) ' ll = <number>
     K = W -LL*20   ' k = condition code
-    f2 = f2 And evaluate_condition(k, ll)
+    f1 = evaluate_condition(k, ll)
+    f2 = f2 And f1
     If Not f2 Then Exit For
   Next y
 
@@ -167,7 +177,7 @@ End Function
 Sub do_commands(x)
   Local cmd(3)
 
-  IP=0
+  ip = 0 ' reset parameter pointer
   cmd(0) = Int(ca(x, 6) / 150)
   cmd(1) = ca(x, 6) - cmd(0) * 150
   cmd(2) = Int(ca(x, 7) / 150)
@@ -177,45 +187,6 @@ Sub do_commands(x)
   do_command(cmd(1))
   do_command(cmd(2))
   do_command(cmd(3))
-End Sub
-
-REM Stop processing non-automatic actions
-970 IF NV(0)<>0 THEN x=X:X=CL:NEXT X:X=x:GOTO 990
-
-REM Next automatic action
-980 NEXT X
-990 :
-1000 IF NV(0)=0 THEN Goto 1040
-1010 GOSUB 1060
-1020 IF F Then PRINT "I DON'T UNDERSTAND YOUR COMMAND": GOTO 1040
-1030 IF NOT F2 Then PRINT "I CAN'T DO THAT YET" : GOTO 1040
-
-REM Return from action-matching routine
-1040 RETURN
-
-REM Get param from condition list
-1050 IP=IP+1:W=CA(X,IP):P=INT(W/20):M=W-P*20:IF M<>0 THEN1050 ELSE RETURN
-
-REM Automatically GET or DROP
-1060 IF NV(0)<>10 AND NV(0)<>18 OR F3 THEN 1230
-1070 IF NV(1)=0 PRINT"WHAT?":GOTO1180
-1080 IF NV(0)<>10 THEN 1110
-1090 L=0:FORZ=0TOIL:IFIA(Z)=-1THENL=L+1
-1100 NEXT:IF L>=MX PRINTZ$:GOTO1180
-1110 K=0:FOR X=0TOIL:IF RIGHT$(IA$(X),1)<>"/"THEN1190 ELSE LL=LEN(IA$(X))-1:TP$=MID$(IA$(X),1,LL):FORY=LL TO2 STEP-1:IFMID$(TP$,Y,1)<>"/"THEN NEXTY:GOTO1190 ELSE y=Y:Y=2:NEXTY:Y=y
-1120 TP$=LEFT$(MID$(TP$,Y+1),ln)
-1130 IFTP$<>NV$(NV(1),1)THEN1190
-1140 IFNV(0)=10THEN1160
-1150 IFIA(X)<>-1THENK=1:GOTO1190 ELSE IA(X)=R:K=3:GOTO1170
-1160 IFIA(X)<>R THEN K=2:GOTO1190 ELSE IA(X)=-1:K=3
-1170 PRINT"OK, ";:x=X:X=IL:NEXTX:X=x
-1180 F=0:RETURN
-1190 NEXTX
-1200 IF K=1 THEN PRINT"I'M NOT CARRYING IT" ELSE IFK=2 PRINT"I DON'T SEE IT HERE"
-1210 IF K=0 IF NOT F3 PRINT"ITS BEYOND MY POWER TO DO THAT":F=0
-1220 IF K<>0 THEN F=0
-1230 RETURN
-
 End Sub
 
 Sub go_direction()
@@ -236,7 +207,7 @@ Sub go_direction()
   EndIf
   If Not l Then Cls
   r = k
-  describe_current_location()
+  describe_room()
 End Sub
 
 Function evaluate_condition(code, number)
@@ -318,7 +289,6 @@ Sub do_command(cmd)
         If ia(i) = -1 Then x = x + 1
       Next i
       If x > mx Then Print "I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
-      Goto 970 ' TODO: stop processing non-automatic actions
       p = get_parameter()
       ia(p) = -1
 
@@ -399,7 +369,7 @@ Sub do_command(cmd)
         For i = 0 To il
           ia(i) = i2(i)
         Next i
-        Goto 100 ' Restart ?
+        Goto 100 ' TODO: Restart
       EndIf
 
     Case 64
@@ -407,9 +377,9 @@ Sub do_command(cmd)
       ' Display the current room.
       ' This checks if the darkness flag-bit (15) is set and the artificial
       ' light (object 9) is not available.
-      ' If there is light, it displays the room description, the obejcts in
+      ' If there is light, it displays the room description, the objects in
       ' the room and any obvious exits.
-      describe_current_location()
+      describe_room()
 
     Case 65
       ' SCORE
@@ -476,24 +446,29 @@ Sub do_command(cmd)
       ia(x) = ia(y)
       ia(y) = p
 
+    Case 102 To 149
+      ' Display corresponding message.
+      Print ms$(cmd - 50)
+
     Case Else
-      Error "Unknown command:" cmd
+      Error "Unknown command: " + Str$(cmd)
 
   End Select
 
 End Sub
 
+' x  - current action index
+' ip - parameter pointer
 Function get_parameter()
- Local m, p, w
+ Local code, value
 
  Do
    ip = ip + 1
-   w = ca(x, ip)
-   p = Int(w / 20)
-   m = w - p * 20
- Loop While m <> 0
+   value = Int(ca(x, ip) / 20)
+   code = ca(x, ip) - value * 20
+ Loop While code <> 0
 
- get_parameter = p
+ get_parameter = value
 End Function
 
 Sub print_object_list(rm)
@@ -521,7 +496,7 @@ Sub prompt_for_input()
   Do
     Input "Tell me what to do ? ", s$
     parse(s$)
-    If Not f Then Exit Do
+    If Not f1 Then Exit Do
     Print "You use word(s) I don't know!"
   Loop
 
@@ -565,7 +540,78 @@ Sub parse(s$)
 
   Print "verb =" nv(0) ", noun =" nv(1)
 
-  f = nv(0) < 1 Or Len(nt$(1)) > 0 And nv(1) < 1
+  f1 = nv(0) < 1 Or Len(nt$(1)) > 0 And nv(1) < 1
+End Sub
+
+Sub do_get(noun)
+  Local carried = 0, i, k
+
+  If noun = 0 Then Print "What?" : f1 = 0 : Exit Sub
+
+  For i = 0 To il
+    If ia(i) = -1 Then carried = carried + 1
+  Next i
+  If carried >= mx Then Print "I've too much to carry!" : f1 = 0 : Exit Sub
+
+  For i = 0 To il
+    If obj_noun$(i) = nv_str$(noun, 1) Then
+      If ia(i) = r Then
+        ia(i) = -1
+        k = 3
+        Exit For
+      Else
+        k = 2
+      End If
+    End If
+  Next i
+
+  If k = 2 Then
+    Print "I don't see it here."
+  Else If k = 0 Then
+    Print "It's beyond my power to do that."
+  Else
+    Print "OK, " : Print
+  End If
+End Sub
+
+Function obj_noun$(i)
+  Local en, st
+
+  st = InStr(ia_str$(i), "/")
+  If st > 1 Then
+    en = InStr(st + 1, ia_str$(i), "/")
+    If en < st + 1 Then Error "Missing trailing '/'"
+    obj_noun$ = Mid$(ia_str$(i), st + 1, en - st - 1)
+  End If
+
+  If Len(obj_noun$) > ln Then Error "Object noun too long: " + obj_noun$
+End Function
+
+Sub do_drop(noun)
+  Local i, k = 0
+
+  If noun = 0 Then Print "What?" : f = 0 : Exit Sub
+
+  For i = 0 To il
+    If obj_noun$(i) = nv_str$(noun, 1) Then
+      If ia(i) = -1 Then
+        ia(i) = r
+        k = 3
+        Exit For
+      Else
+        k = 1
+      End If
+    End If
+  Next i
+
+  If k = 1 Then
+    Print "I'm not carrying it!"
+  Else If k = 0 Then
+    Print "It's beyond my power to do that."
+  Else
+    Print "OK, " : Print
+  End If
+
 End Sub
 
 Sub handle_light()
