@@ -1,0 +1,446 @@
+Data dump for 'pirate.dat'
+
+Max object index:       60
+Max action index:       151
+Max vocabulary index:   59
+Max room index:         33
+Max objects carried:    5
+Starting room index:    1
+Number of treasures:    2
+Vocabulary word length: 3
+Time limit:             200
+Max message index:      71
+Treasure room index:    1
+
+ACTIONS
+-------
+
+0:    0     80    IN/W 21  IN/W 17  Par 21   Par 17   Par 0    MSG:60  x->RM0  x->RM0  0       
+1:    0     80    IN/W 23  IN/W 24  Par 23   Par 0    Par 0    MSG:54  MSG:62  MSG:11  x->RM0  
+2:    0     100   HAS 26   -AVL 27  Par 27   -BIT 11  Par 11   MSG:1   DROPx   SETz    0       
+3:    0     3     AVL 24   Par 0    Par 0    Par 0    Par 0    MSG:54  MSG:62  0       0       
+4:    0     100   IN 14    Par 0    Par 0    Par 0    Par 0    DAY     0       0       0       
+5:    0     100   BIT 1    AVL 33   AVL 20   Par 2    Par 0    SETz    0       0       0       
+6:    0     100   BIT 2    Par 1    Par 33   Par 37   Par 11   CLRz    x->RM0  EXx,x   MSG:52  
+7:    0     100   BIT 1    Par 1    Par 0    Par 0    Par 0    MSG:25  CLRz    0       0       
+8:    0     100   BIT 0    Par 35   Par 36   Par 0    Par 0    EXx,x   CLR0    0       0       
+9:    0     100   BIT 2    Par 2    Par 32   Par 20   Par 15   CLRz    x->RM0  x->RM0  x->RM0  
+10:   0     25    IN 33    Par 0    Par 0    Par 0    Par 0    MSG:28  FINI    0       0       
+11:   0     40    IN 5     -HAVE 44 Par 0    Par 0    Par 0    MSG:29  DEAD    0       0       
+12:   0     80    IN/W 12  IN/W 25  Par 41   Par 4    Par 12   x->y    MSG:21  SET0    x->RM0  
+13:   0     100   BIT 0    Par 7    Par 4    Par 25   Par 0    CLR0    x->y    x->RM0  0       
+14:   0     35    HAS 21   -HAVE 42 Par 21   Par 10   Par 0    MSG:34  x->y    0       0       
+15:   0     100   -BIT 6   Par 6    Par 0    Par 0    Par 0    MSG:43  SETz    0       0       
+16:   0     50    IN/W 12  IN/W 49  Par 41   Par 22   Par 12   x->y    MSG:21  x->RM0  0       
+17:   0     35    AVL 24   -BIT 3   Par 0    Par 0    Par 0    MSG:54  MSG:55  0       0       
+18:   0     10    AVL 24   -BIT 12  Par 0    Par 0    Par 0    MSG:54  MSG:56  0       0       
+19:   0     50    IN 24    -RM0 53  -HAVE 54 Par 0    Par 0    MSG:67  MSG:61  DEAD    0       
+20:   0     50    IN 10    -HAVE 54 Par 0    Par 0    Par 0    MSG:61  DEAD    0       0       
+21:   0     10    -BIT 10  Par 52   Par 53   Par 15   Par 55   EXx,x   EXx,x   SET0    0       
+22:   0     10    BIT 10   Par 52   Par 53   -BIT 4   Par 0    EXx,x   SET0    0       0       
+23:   0     85    AVL 24   BIT 0    Par 0    Par 0    Par 0    MSG:54  MSG:69  CLR0    0       
+24:   0     100   BIT 0    Par 0    Par 0    Par 0    Par 0    CLR0    0       0       0       
+25:   0     100   IN 5     Par 0    Par 0    Par 0    Par 0    DAY     0       0       0       
+26:   0     80    IN/W 23  IN/W 14  Par 14   Par 58   Par 0    MSG:9   EXx,x   0       0       
+27:   GO    PAS   IN/W 4   Par 3    Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+28:   REA   BOO   HAS 3    Par 0    Par 0    Par 0    Par 0    MSG:2   0       0       0       
+29:   GO    WIN   IN/W 1   Par 5    Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+30:   FIN   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:58  0       0       0       
+31:   YOH   ANY   IN 5     Par 6    HAS 3    Par 0    Par 0    CLS     MSG:7   GOTOy   DspRM   
+32:   YOH   ANY   -IN 5    Par 5    HAS 3    -BIT 4   Par 0    CLS     MSG:7   GOTOy   DspRM   
+33:   LOO   WIN   IN/W 1   Par 0    Par 0    Par 0    Par 0    MSG:4   MSG:47  0       0       
+34:   LIG   TOR   HAS 8    AVL 10   Par 8    Par 9    Par 0    EXx,x   CLS     MSG:8   DspRM   
+35:   UNL   TOR   HAS 9    Par 9    Par 8    Par 0    Par 0    x->RM0  GETx    0       0       
+36:   HEL   ANY   IN 5     Par 0    Par 0    Par 0    Par 0    MSG:6   0       0       0       
+37:   GET   DUB   IN/W 22  -IN/W 23 Par 22   Par 0    Par 0    GETx    0       0       0       
+38:   GET   DUB   IN/W 22  IN/W 23  Par 0    Par 0    Par 0    MSG:5   MSG:10  DEAD    0       
+39:   GO    SHA   IN/W 16  Par 9    Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+40:   GET   CHE   IN/W 13  IN/W 12  Par 0    Par 0    Par 0    MSG:12  0       0       0       
+41:   GET   CHE   IN/W 13  -IN/W 12 Par 13   Par 0    Par 0    GETx    0       0       0       
+42:   OPE   CHE   IN/W 13  IN/W 12  Par 0    Par 0    Par 0    MSG:12  0       0       0       
+43:   OPE   CHE   IN/W 13  -IN/W 12 Par 0    Par 0    Par 0    MSG:13  0       0       0       
+44:   UNL   CHE   IN/W 13  -IN/W 12 HAS 27   Par 13   Par 28   MSG:14  x->RM0  DROPx   0       
+45:   OPE   CHE   HAS 13   Par 0    Par 0    Par 0    Par 0    MSG:16  0       0       0       
+46:   LOO   CHE   HAS 28   Par 0    Par 0    Par 0    Par 0    MSG:16  0       0       0       
+47:   LOO   CHE   AVL 13   Par 0    Par 0    Par 0    Par 0    MSG:18  MSG:13  0       0       
+48:   LOO   CHE   IN/W 28  Par 29   -BIT 5   Par 5    -BIT 12  MSG:15  DROPx   SETz    0       
+49:   LOO   CHE   -BIT 12  IN/W 28  BIT 5    Par 45   Par 12   MSG:41  DROPx   SETz    0       
+50:   LOO   CHE   BIT 12   IN/W 28  Par 0    Par 0    Par 0    MSG:44  0       0       0       
+51:   LOO   BAG   AVL 5    -BIT 3   Par 0    Par 0    Par 0    MSG:4   MSG:46  0       0       
+52:   LOO   BAG   AVL 5    BIT 3    Par 0    Par 0    Par 0    MSG:44  0       0       0       
+53:   OPE   DOO   IN/W 17  Par 0    Par 0    Par 0    Par 0    MSG:17  0       0       0       
+54:   OPE   DOO   IN/W 18  Par 0    Par 0    Par 0    Par 0    MSG:18  MSG:13  0       0       
+55:   OPE   DOO   IN/W 19  Par 0    Par 0    Par 0    Par 0    MSG:14  0       0       0       
+56:   GO    HAL   IN/W 19  Par 16   Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+57:   UNL   DOO   IN/W 17  IN/W 18  Par 0    Par 0    Par 0    MSG:17  0       0       0       
+58:   UNL   DOO   -IN/W 17 IN/W 18  HAS 27   Par 18   Par 19   x->RM0  DROPx   SET0    0       
+59:   DRI   BOT   AVL 25   Par 0    Par 0    Par 0    Par 0    MSG:1   MSG:22  0       0       
+60:   INV   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    INV     0       0       0       
+61:   GET   INV   Par 0    Par 0    Par 0    Par 0    Par 0    INV     0       0       0       
+62:   LOO   BOX   AVL 57   -AVL 50  Par 0    Par 0    Par 0    MSG:4   MSG:46  0       0       
+63:   AWA   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:19  MSG:3   0       0       
+64:   REA   BOO   -HAVE 3  Par 0    Par 0    Par 0    Par 0    MSG:18  MSG:20  0       0       
+65:   SCO   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    SCORE   0       0       0       
+66:   SAV   GAM   Par 0    Par 0    Par 0    Par 0    Par 0    SAVEz   0       0       0       
+67:   BUI   BOA   -AVL 29  Par 0    Par 0    Par 0    Par 0    MSG:18  MSG:45  0       0       
+68:   GO    CAV   IN 14    Par 7    Par 0    Par 0    Par 0    GOTOy   NIGHT   CLS     DspRM   
+69:   LOO   LAG   RM0 52   Par 0    Par 0    Par 0    Par 0    MSG:4   MSG:47  MSG:67  0       
+70:   LOO   LAG   -RM0 52  Par 0    Par 0    Par 0    Par 0    MSG:4   MSG:47  MSG:66  0       
+71:   LOO   SHA   IN/W 16  Par 0    Par 0    Par 0    Par 0    MSG:4   MSG:47  0       0       
+72:   LOO   CRA   IN/W 38  Par 0    Par 0    Par 0    Par 0    MSG:4   MSG:47  0       0       
+73:   GO    CRA   IN/W 39  HAS 46   Par 0    Par 0    Par 0    MSG:18  MSG:27  0       0       
+74:   GO    CRA   IN/W 38  HAS 13   Par 0    Par 0    Par 0    MSG:18  MSG:27  0       0       
+75:   QUI   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    FINI    0       0       0       
+76:   GET   RUG   IN/W 30  Par 0    Par 0    Par 0    Par 0    MSG:18  MSG:23  0       0       
+77:   GET   NAI   HAS 31   IN/W 30  Par 32   Par 26   Par 30   GETx    DROPx   x->RM0  0       
+78:   GO    CRA   IN/W 39  HAS 33   Par 0    Par 0    Par 0    MSG:18  MSG:27  0       0       
+79:   BUI   BOA   AVL 31   AVL 29   AVL 15   AVL 32   Par 1    SETz    0       0       0       
+80:   BUI   BOA   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:25  0       0       0       
+81:   GO    PIT   IN/W 36  Par 11   Par 0    Par 0    Par 0    CLS     GOTOy   DspRM   0       
+82:   GO    CRA   IN/W 38  HAS 3    Par 0    Par 0    Par 0    MSG:18  MSG:27  0       0       
+83:   LOO   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    CLS     DspRM   0       0       
+84:   GET   RUG   AVL 26   Par 26   Par 0    Par 0    Par 0    GETx    0       0       0       
+85:   GO    CRA   IN/W 38  Par 17   Par 0    Par 0    Par 0    GOTOy   MSG:26  NIGHT   DspRM   
+86:   GO    CRA   IN/W 39  Par 18   Par 0    Par 0    Par 0    GOTOy   DAY     CLS     DspRM   
+87:   SET   SAI   IN 20    IN/W 12  -RM0 52  -BIT 4   Par 0    MSG:65  0       0       0       
+88:   YOH   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:3   0       0       0       
+89:   OPE   BAG   AVL 5    Par 10   -BIT 3   Par 3    Par 0    MSG:30  DROPx   SETz    0       
+90:   OPE   BAG   BIT 3    Par 0    Par 0    Par 0    Par 0    MSG:3   MSG:44  0       0       
+91:   GET   WAT   -HAVE 7  Par 0    Par 0    Par 0    Par 0    MSG:32  0       0       0       
+92:   GET   WAT   IN/W 40  HAS 7    Par 7    Par 42   Par 0    x->RM0  GETx    0       0       
+93:   DRO   WAT   HAS 42   Par 42   Par 7    Par 0    Par 0    x->RM0  GETx    MSG:33  0       
+94:   DRI   WAT   IN/W 40  Par 0    Par 0    Par 0    Par 0    MSG:5   DEAD    0       0       
+95:   DRI   WAT   HAS 42   Par 42   Par 7    Par 0    Par 0    MSG:5   DEAD    x->RM0  GETx    
+96:   WAK   PIR   IN/W 41  Par 41   Par 12   Par 20   Par 0    MSG:35  x->RM0  x->y    0       
+97:   OPE   BOT   AVL 25   Par 0    Par 0    Par 0    Par 0    MSG:14  0       0       0       
+98:   EMP   BOT   HAS 25   Par 25   Par 7    Par 0    Par 0    MSG:36  x->RM0  GETx    MSG:33  
+99:   GO    BOA   IN/W 37  Par 20   Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+100:  GO    SHO   IN 20    BIT 4    Par 21   Par 12   IN/W 12  GOTOy   CLS     DROPx   MSG:71  
+101:  GO    SHO   IN 20    -BIT 4   Par 6    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+102:  SET   SAI   IN 20    -IN/W 12 Par 0    Par 0    Par 0    MSG:18  MSG:37  0       0       
+103:  SET   SAI   IN 20    -AVL 45  Par 0    Par 0    Par 0    MSG:18  MSG:38  0       0       
+104:  SET   SAI   IN 20    -BIT 4   Par 4    Par 37   Par 21   MSG:39  SETz    x->y    0       
+105:  SET   SAI   IN 20    BIT 4    Par 4    Par 37   Par 6    MSG:39  CLRz    x->y    0       
+106:  CAS   OFF   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:40  0       0       0       
+107:  REA   MAP   AVL 45   Par 0    Par 0    Par 0    Par 0    MSG:42  0       0       0       
+108:  SAI   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:40  0       0       0       
+109:  GET   BOO   IN/W 3   Par 3    Par 0    Par 0    Par 0    GETx    0       0       0       
+110:  OPE   BOO   AVL 3    Par 0    Par 0    Par 0    Par 0    MSG:70  0       0       0       
+111:  GO    SHO   IN 20    BIT 4    Par 21   Par 0    Par 0    GOTOy   CLS     DspRM   0       
+112:  GO    PAT   IN 14    Par 18   Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+113:  GET   PAR   IN/W 24  IN/W 12  Par 0    Par 0    Par 0    MSG:12  0       0       0       
+114:  GET   PAR   IN/W 24  Par 24   Par 0    Par 0    Par 0    GETx    MSG:54  MSG:62  0       
+115:  GO    SHE   IN/W 34  Par 15   Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+116:  GO    30    -BIT 7   IN 23    Par 7    Par 0    Par 0    SETz    MSG:51  0       0       
+117:  GO    30    Par 8    Par 0    Par 0    Par 0    Par 0    SETz    MSG:51  0       0       
+118:  DIG   ANY   IN 22    Par 47   HAS 46   -AVL 47  Par 0    CLS     MSG:48  DROPx   DspRM   
+119:  DIG   ANY   IN 6     HAS 46   Par 0    Par 0    Par 0    MSG:49  0       0       0       
+120:  DIG   ANY   IN 21    -AVL 49  Par 49   HAS 46   Par 0    CLS     DROPx   MSG:48  DspRM   
+121:  JUM   ANY   IN 5     Par 0    Par 0    Par 0    Par 0    CLS     MSG:5   DspRM   0       
+122:  DIG   ANY   IN 23    BIT 7    Par 57   HAS 46   -AVL 57  CLS     DROPx   MSG:48  DspRM   
+123:  GET   NAI   AVL 32   Par 32   Par 0    Par 0    Par 0    GETx    0       0       0       
+124:  GO    WIN   IN 5     Par 2    Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+125:  HEL   ANY   IN 2     Par 0    Par 0    Par 0    Par 0    MSG:53  0       0       0       
+126:  REA   PLA   AVL 29   Par 0    Par 0    Par 0    Par 0    MSG:31  0       0       0       
+127:  UNL   DOO   IN/W 35  HAS 27   Par 0    Par 0    Par 0    MSG:18  MSG:13  MSG:57  0       
+128:  OPE   DOO   IN/W 35  Par 0    Par 0    Par 0    Par 0    MSG:18  MSG:13  0       0       
+129:  OPE   DOO   Par 0    IN/W 36  Par 0    Par 0    Par 0    MSG:14  0       0       0       
+130:  GO    LAG   IN/W 51  Par 24   Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+131:  GO    STA   IN/W 0   IN 1     Par 2    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+132:  GET   BOO   IN 2     Par 3    Par 2    Par 4    -IN/W 4  GETx    MSG:1   EXx,x   0       
+133:  GET   ANC   IN/W 15  BIT 10   Par 15   Par 0    Par 0    GETx    0       0       0       
+134:  GET   ANC   IN/W 15  -BIT 10  Par 0    Par 0    Par 0    MSG:18  MSG:63  0       0       
+135:  GET   ANC   -IN/W 15 Par 0    Par 0    Par 0    Par 0    CLS     MSG:18  MSG:50  DspRM   
+136:  EMP   BOT   HAS 42   Par 42   Par 7    Par 0    Par 0    x->RM0  EXx,x   0       0       
+137:  GO    MON   IN/W 56  Par 25   Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
+138:  SAI   BOA   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:40  0       0       0       
+139:  HEL   ANY   IN 14    Par 0    Par 0    Par 0    Par 0    MSG:59  0       0       0       
+140:  WEI   ANC   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:68  0       0       0       
+141:  DIG   ANY   HAS 46   -BIT 10  IN/W 15  Par 10   Par 0    SETz    0       0       0       
+142:  BUR   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:18  0       0       0       
+143:  OPE   BOX   HAS 31   AVL 57   Par 50   Par 0    Par 0    MSG:30  DROPx   0       0       
+144:  KIL   PIR   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:12  0       0       0       
+145:  HEL   ANY   IN 11    Par 0    Par 0    Par 0    Par 0    MSG:66  MSG:67  MSG:69  0       
+146:  SAY   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:64  0       0       0       
+147:  HEL   ANY   IN 6     Par 0    Par 0    Par 0    Par 0    MSG:59  0       0       0       
+148:  *FOL  ANY   BIT 10   Par 52   Par 53   Par 0    Par 0    EXx,x   MSG:69  0       0       
+149:  HEL   ANY   IN 9     IN/W 12  Par 0    Par 0    Par 0    MSG:24  0       0       0       
+150:  DIG   ANY   HAS 46   Par 8    Par 7    Par 0    Par 0    MSG:49  CLRz    CLRz    0       
+151:  HEL   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:3   0       0       0       
+
+VOCAB
+-----
+
+0:    AUT   ANY
+1:    GO    NORTH
+2:    *CLI  SOUTH
+3:    *WAL  EAST
+4:    *RUN  WEST
+5:    *ENT  UP
+6:    *PAC  DOWN
+7:    *FOL  STA
+8:    SAY   PAS
+9:    SAI   HAL
+10:   GET   BOO
+11:   *TAK  BOT
+12:   *CAT  *RUM
+13:   *PIC  WIN
+14:   *REM  GAM
+15:   *WEA  MON
+16:   *PUL  PIR
+17:   FLY   ARO
+18:   DRO   BAG
+19:   *REL  *DUF
+20:   *THR  TOR
+21:   *LEA  OFF
+22:   *GIV  MAT
+23:   DRI   YOH
+24:   *EAT  30
+25:   INV   LUM
+26:   SAI   RUG
+27:   LOO   KEY
+28:   *SHO  INV
+29:   WAI   DUB
+30:   REA   SAI
+31:   .     FIS
+32:   YOH   ANC
+33:   SCO   SHA
+34:   SAV   PLA
+35:   KIL   CAV
+36:   *ATT  PAT
+37:   LIG   DOO
+38:   .     CHE
+39:   OPE   PAR
+40:   *SMA  HAM
+41:   UNL   NAI
+42:   HEL   BOA
+43:   AWA   *SHI
+44:   *BUN  SHE
+45:         CRA
+46:   QUI   WAT
+47:   BUI   *SAL
+48:   *MAK  LAG
+49:   WAK   *TID
+50:   SET   PIT
+51:   CAS   SHO
+52:   DIG   *BEA
+53:   BUR   MAP
+54:   FIN   PAC
+55:   JUM   BON
+56:   EMP   HOL
+57:   WEI   SAN
+58:         BOX
+59:         SNE
+
+ROOMS
+-----
+
+0:    <storeroom>
+      Exits: None
+1:    APARTMENT IN LONDON
+      Exits: None
+2:    ALCOVE
+      Exits: Down
+3:    SECRET PASSAGEWAY
+      Exits: East, West
+4:    MUSTY ATTIC
+      Exits: West
+5:    *I'M OUTSIDE AN OPEN WINDOW ON A LEDGE ON THE SIDE OF A VERY TALL BUILDING
+      Exits: None
+6:    SANDY BEACH ON A TROPICAL ISLE
+      Exits: East
+7:    MAZE OF CAVES
+      Exits: South, East, West, Down
+8:    MEADOW
+      Exits: East, West
+9:    GRASS SHACK
+      Exits: West
+10:   *I'M IN THE OCEAN
+      Exits: North, South, East, West
+11:   PIT
+      Exits: Up
+12:   MAZE OF CAVES
+      Exits: North, East, West
+13:   MAZE OF CAVES
+      Exits: North, South, East, West
+14:   *I'M AT THE FOOT OF A CAVE RIDDEN HILL. A PATH LEADS TO THE TOP
+      Exits: West
+15:   TOOL SHED
+      Exits: North
+16:   LONG HALLWAY
+      Exits: East
+17:   LARGE CAVERN
+      Exits: West
+18:   *I'M ON TOP OF A HILL. BELOW IS PIRATES ISLAND. ACROSS THE SEA OFF IN THE DISTANCE I SEE *TREASURE* ISLAND
+      Exits: Down
+19:   MAZE OF CAVES
+      Exits: South, East, West
+20:   *I'M ABOARD PIRATE SHIP ANCHORED OFF SHORE
+      Exits: None
+21:   *I'M ON THE BEACH AT TREASURE ISLAND
+      Exits: South
+22:   SPOOKY OLD GRAVEYARD FILLED WITH PILES OF EMPTY AND BROKEN RUM BOTTLES
+      Exits: North, East
+23:   LARGE BARREN FIELD
+      Exits: West
+24:   SHALLOW LAGOON. TO THE NORTH IS THE OCEAN
+      Exits: North, South, East, West
+25:   SACKED AND DESERTED MONASTARY
+      Exits: West
+26:   <empty>
+      Exits: None
+27:   <empty>
+      Exits: None
+28:   <empty>
+      Exits: None
+29:   <empty>
+      Exits: None
+30:   <empty>
+      Exits: None
+31:   <empty>
+      Exits: None
+32:   <empty>
+      Exits: None
+33:   *WELCOME TO NEVER NEVER LAND
+      Exits: None
+
+MESSAGES
+--------
+
+0:    <empty>
+1:    THERE'S A STRANGE SOUND
+2:    THE NAME OF THE BOOK IS -TREASURE ISLAND- THERE'S A WORD ENGRAVED IN THE FLYLEAF -YOHO- AND A MESSAGE -LONG JOHN SILVER LEFT 2 TREASURES ON TREASURE ISLAND!-
+3:    NOTHING HAPPENS
+4:    THERE'S SOMETHING THERE ALRIGHT. MAYBE I SHOULD
+5:    THAT'S NOT VERY SAFE
+6:    YOU MAY NEED MAGIC HERE
+7:    EVERYTHING SPINS AROUND AND SUDDENLY YOU ARE ELSEWHERE...
+8:    TORCH IS LIT
+9:    I WAS WRONG. I GUESS ITS NOT A MONGOOSE CAUSE THE SNAKES BIT IT.
+10:   I'M SNAKE BIT
+11:   PARROT ATTACKS SNAKES AND DRIVES THEM OFF
+12:   PIRATE WON'T LET ME
+13:   ITS LOCKE D
+14:   ITS OPEN
+15:   THERE ARE A SET OF PLANS IN IT
+16:   NOT WHILE I'M CARRYING IT
+17:   CROCS STOP M E
+18:   SORRY I CAN'T
+19:   WRONG GAME YOU SILLY GOOSE!
+20:   I DON'T HAVE IT
+21:   PIRATE GRABS RUM AND SCUTTLES OFF CHORTLING
+22:   ...I THINK ITS ME. HEE HEE.
+23:   ITS NAILED TO THE FLOOR!
+24:   -MAGIC WORD- HO AND A ... (WORK ON IT. YOU'LL GET IT)
+25:   NO. SOMETHING IS MISSING!
+26:   IT WAS A TIGHT SQUEEZE!
+27:   SOMETHING WON'T FIT
+28:   SINCE NOTHING IS HAPPENING
+29:   I SLIPPED AND FELL...
+30:   SOMETHING FALLS OUT
+31:   THEY'RE PLANS TO BUILD JOLLY ROGER (A PIRATE SHIP!) YOU'LL NEED HAMMER NAILS LUMBER ANCHOR SAILS AND KEEL.
+32:   I'VE NO CONTAINER
+33:   IT SOAKS INTO THE GROUND
+34:   TOO DRY. FISH VANISH.
+35:   PIRATE AWAKENS. SAYS -AYE MATEY WE BE CASTING OFF SOON- HE THEN VANISHES.
+36:   WHAT A WASTE...
+37:   I'VE NO CREW
+38:   PIRATE SAYS -AYE MATEY WE BE NEEDING A MAP FIRST-
+39:   AFTER A MONTH AT SEA WE SET ANCHOR OFF OF A SANDY BEACH. ALL ASHORE WHO'S GOING ASHORE...
+40:   TRY -WEIGH ANCHOR-
+41:   THERE'S A MAP IN IT
+42:   ITS A MAP TO TREASURE ISLAND. AT THE BOTTOM IT SAYS -30 PACES AND THEN DIG!-
+43:   * WELCOME TO -PIRATES ADVENTURE- BY SCOTT & ALEXIS ADAMS *
+44:   ITS EMPTY
+45:   I'VE NO PLANS!
+46:   OPEN IT?
+47:   GO THERE?
+48:   I FOUND SOMETHING!
+49:   I DIDN'T FIND ANYTHING
+50:   I DON'T SEE IT HERE
+51:   OK I WALKED OFF 30 PACES.
+52:   CONGRATULATIONS !!! BUT YOUR ADVENTURE I S NOT OVER YET...
+53:   READING EXPANDS THE MIND
+54:   THE PARROT CRYS
+55:   -CHECK THE BAG MATEY-
+56:   -CHECK THE CHEST MATEY-
+57:   FROM THE OTHER SIDE!
+58:   OPEN THE BOOK!
+59:   THERE'S MULTIPLE EXITS HERE!
+60:   CROCS EAT FISH AND LEAVE
+61:   I'M UNDERWATER. I CAN'T SWIM. BLUB BLUB...
+62:   -PIECES OF EIGHT-
+63:   ITS STUCK IN THE SAND
+64:   USE 1 WORD
+65:   PIRATE SAYS -AYE MATEY WE BE WAITING FOR THE TIDE TO COME IN-
+66:   THE TIDE IS OUT
+67:   THE TIDE IS COMING IN
+68:   ABOUT 20 POUNDS. TRY -SET SAIL-
+69:   -TIDES A CHANGING MATEY-
+70:   NOTE HERE -I BE LIKING PARROTS. THEY BE SMART MATEY-
+71:   PIRATE FOLLOWS YOU ASHORE AS IF HE IS WAITING FOR SOMETHING.
+
+OBJECTS
+-------
+
+0:    1     FLIGHT OF STAIRS
+1:    2     OPEN WINDOW
+2:    2     BOOKS IN A BOOKCASE
+3:    0     LARGE LEATHER BOUND BOOK/BOO/
+4:    0     BOOKCASE WITH A SECRET PASSAGE BEHIND IT
+5:    4     PIRATE'S DUFFEL BAG/BAG/
+6:    1     SIGN ON WALL -RETURN TREASURES HERE. SAY SCORE- SIGN BY STAIRS -ANTONYM OF LIGHT IS UNLIGHT-
+7:    0     EMPTY BOTTLE/BOT/
+8:    4     UNLIT TORCH/TOR/
+9:    0     LIT TORCH/TOR/
+10:   0     MATCHES/MAT/
+11:   6     SMALL SHIP'S KEEL AND MAST
+12:   9     WICKED LOOKING PIRATE
+13:   9     TREASURE CHEST/CHE/
+14:   8     MONGOOSE/MON/
+15:   24    RUSTY ANCHOR/ANC/
+16:   8     GRASS SHACK
+17:   11    MEAN AND HUNGRY LOOKING CROCODILES
+18:   11    LOCKED DOOR
+19:   0     OPEN DOOR WITH HALL BEYOND
+20:   17    PILE OF SAILS/SAI/
+21:   10    FISH/FIS/
+22:   25    *DUBLEONS*/DUB/
+23:   25    DEADLY MAMBA SNAKES/SNA/
+24:   9     PARROT/PAR/
+25:   1     BOTTLE OF RUM/BOT/
+26:   0     RUG/RUG/
+27:   0     RING OF KEYS/KEY/
+28:   0     OPEN TREASURE CHEST/CHE/
+29:   0     SET OF PLANS/PLA/
+30:   1     RUG
+31:   15    CLAW HAMMER/HAM/
+32:   0     NAILS/NAI/
+33:   17    PILE OF PRECUT LUMBER/LUM/
+34:   17    TOOL SHED
+35:   16    LOCKED DOOR
+36:   0     OPEN DOOR WITH PIT BEYOND
+37:   0     PIRATE SHIP
+38:   18    ROCK WALL WITH NARROW CRACK IN IT
+39:   17    NARROW CRACK IN THE ROCK
+40:   10    SALT WATER
+41:   0     SLEEPING PIRATE
+42:   0     BOTTLE OF SALT WATER/BOT/
+43:   4     PIECES OF BROKEN RUM BOTTLES
+44:   1     NON-SKID SNEAKES/SNE/
+45:   0     MAP/MAP/
+46:   15    SHOVEL/SHO/
+47:   0     MOULDY OLD BONES/BON/
+48:   6     SAND/SAN/
+49:   0     BOTTLES OF RUM/BOT/
+50:   0     *RARE OLD PRICELESS STAMPS*/STA/
+51:   6     LAGOON
+52:   24    THE TIDE IS OUT
+53:   0     THE TIDE IS COMING IN
+54:   15    WATER WINGS/WIN/
+55:   0     FLOTSAM AND JETSAM
+56:   23    MONASTARY
+57:   0     PLAIN WOODEN BOX/BOX/
+58:   0     DEAD SQUIRREL
+59:   0     <empty>
+60:   0     <empty>
