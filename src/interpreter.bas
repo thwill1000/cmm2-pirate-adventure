@@ -8,18 +8,13 @@ Option Default Integer
 #Include "data.inc"
 #Include "debug.inc"
 
-Dim ac
-Dim k, s$, z$
-Dim d = -1
-Dim lx ' Light duration
+Dim lx    ' light duration
 Dim nv(1) ' verb & noun of current command
-Dim df ' Dark flag
-Dim r  ' Current room
-Dim sf ' Status flags
+Dim df    ' dark flag
+Dim r     ' current room
+Dim sf    ' status flags
+Dim ip    ' action parameter pointer
 Dim f1, f2, f3
-Dim ip
-Dim x  ' 1st loop index
-Dim y  ' 2nd loop index
 
 Cls
 
@@ -119,7 +114,7 @@ Sub describe_room()
 End Sub
 
 Function do_actions()
-  Local ok, n, v
+  Local a, ok, n, v
 
   f1 = 1 : f2 = 1 : f3 = 0
 
@@ -129,10 +124,10 @@ Function do_actions()
     Exit Function
   EndIf
 
-  For x = 0 to cl
+  For a = 0 to cl
     ok = 0
-    v = Int(ca(x, 0) / 150) ' action - verb
-    n = ca(x, 0) - v * 150  ' action - noun
+    v = Int(ca(a, 0) / 150) ' action - verb
+    n = ca(a, 0) - v * 150  ' action - noun
     If v = 0 Then
       ' Automatic action, n is the probability
       ' TODO: Am I correctly generating numbers in range 1..100
@@ -142,10 +137,10 @@ Function do_actions()
     If nv(0) = v And nv(1) = n Then ok = 1
     If nv(0) = v And n = 0 Then ok = 1
 
-    If ok Then ok = process_conditions(x)
-    If ok Then do_commands(x)
+    If ok Then ok = process_conditions(a)
+    If ok Then do_commands(a)
     If v <> 0 And ok Then Exit For
-  Next x
+  Next a
 
   ' Completed processing automatic actions
   If nv(0) = 0 Then Exit Function
@@ -158,35 +153,36 @@ Function do_actions()
 
 End Function
 
-Function process_conditions(x)
-  Local k, ll, w, y
+' @param  a  current action index
+Function process_conditions(a)
+  Local code, i, value
 
   f1 = 0 : f2 = 1 : f3 = 1
-  For y = 1 To 5
-    W = CA(X,Y)
-    LL = INT(W/20) ' ll = <number>
-    K = W -LL*20   ' k = condition code
-    f1 = evaluate_condition(k, ll)
+  For i = 1 To 5
+    value = Int(ca(a, i) / 20)
+    code = ca(a, i) - value * 20
+    f1 = evaluate_condition(code, value)
     f2 = f2 And f1
     If Not f2 Then Exit For
-  Next y
+  Next i
 
   process_conditions = f2
 End Function
 
-Sub do_commands(x)
+' @param  a  current action index
+Sub do_commands(a)
   Local cmd(3)
 
   ip = 0 ' reset parameter pointer
-  cmd(0) = Int(ca(x, 6) / 150)
-  cmd(1) = ca(x, 6) - cmd(0) * 150
-  cmd(2) = Int(ca(x, 7) / 150)
-  cmd(3) = ca(x, 7) - cmd(2) * 150
+  cmd(0) = Int(ca(a, 6) / 150)
+  cmd(1) = ca(a, 6) - cmd(0) * 150
+  cmd(2) = Int(ca(a, 7) / 150)
+  cmd(3) = ca(a, 7) - cmd(2) * 150
 
-  do_command(cmd(0))
-  do_command(cmd(1))
-  do_command(cmd(2))
-  do_command(cmd(3))
+  do_command(a, cmd(0))
+  do_command(a, cmd(1))
+  do_command(a, cmd(2))
+  do_command(a, cmd(3))
 End Sub
 
 Sub go_direction()
@@ -210,38 +206,38 @@ Sub go_direction()
   describe_room()
 End Sub
 
-Function evaluate_condition(code, number)
+Function evaluate_condition(code, value)
   Local i, pass
   Select Case code
     Case 0
       pass = 1
     Case 1
-      ' Passes if the player is carrying object <number>.
-      pass = (ia(number) = -1)
+      ' Passes if the player is carrying object <value>.
+      pass = (ia(value) = -1)
     Case 2
-      ' Passes if the player is in the same room (but not carrying) object <number>.
-      pass = (ia(number) = r)
+      ' Passes if the player is in the same room (but not carrying) object <value>.
+      pass = (ia(value) = r)
     Case 3
-      ' Passes if object<number> is available; i.e. carried or in the current room
-      pass = (ia(number) = -1) Or (ia(number) = r)
+      ' Passes if object <value> is available; i.e. carried or in the current room
+      pass = (ia(value) = -1) Or (ia(value) = r)
     Case 4
-      ' Passes if the player is in room <number>.
-      pass = (r = number)
+      ' Passes if the player is in room <value>.
+      pass = (r = value)
     Case 5
-      ' Passes if the player is carrying object <number> or it is in a different room.
-      pass = (ia(number) <> r)
+      ' Passes if the player is carrying object <value> or it is in a different room.
+      pass = (ia(value) <> r)
     Case 6
-      ' Passes if the player is not carrying object <number>.
-      pass = (ia(number) <> -1)
+      ' Passes if the player is not carrying object <value>.
+      pass = (ia(value) <> -1)
     Case 7
-      ' Passes if the player is not in room <number>.
-      pass = (r <> number)
+      ' Passes if the player is not in room <value>.
+      pass = (r <> value)
     Case 8
       ' Passes if numbered flag-bit set.
-      pass = (sf And Int(2^number + 0.5)) <> 0
+      pass = (sf And Int(2^value + 0.5)) <> 0
     Case 9
       ' Passes if numbered flag-bit clear.
-      pass = (sf And Int(2^number + 0.5)) = 0
+      pass = (sf And Int(2^value + 0.5)) = 0
     Case 10
       ' Passes if the player is carrying anything.
       For i = 0 To il
@@ -255,13 +251,13 @@ Function evaluate_condition(code, number)
       Next i
     Case 12
       ' Passes if object <number> is not available; i.e. not carried or in the current room.
-      pass = (ia(number) <> -1) And (ia(number) <> r)
+      pass = (ia(value) <> -1) And (ia(value) <> r)
     Case 13
-      ' Passes if object <number> is not in the store room (0)
-      pass = (ia(number) <> 0)
+      ' Passes if object <value> is not in the store room (0)
+      pass = (ia(value) <> 0)
     Case 14
-      ' Passes if object <number> is in the store room (0)
-      pass = (ia(number) = 0)
+      ' Passes if object <value> is in the store room (0)
+      pass = (ia(value) = 0)
     Case Else
       Error "Unknown condition: " + Str$(code)
   End Select
@@ -269,7 +265,8 @@ Function evaluate_condition(code, number)
   evaluate_condition = pass
 End Function
 
-Sub do_command(cmd)
+' @param  a  current action index
+Sub do_command(a, cmd)
   Local i, p, x, y
 
   Select Case cmd
@@ -289,14 +286,14 @@ Sub do_command(cmd)
         If ia(i) = -1 Then x = x + 1
       Next i
       If x > mx Then Print "I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
-      p = get_parameter()
+      p = get_parameter(a)
       ia(p) = -1
 
     Case 53
       ' DROPx
       ' Drop the Par #1 object in the current room.
       ' The object may be carried or in any other room
-      p = get_parameter()
+      p = get_parameter(a)
       ia(p) = r
 
     Case 54
@@ -304,13 +301,13 @@ Sub do_command(cmd)
       ' Move the player to the Par #1 room.
       ' This command should be followed by a DspRM (64) command.
       ' Also it may need to be followed by a NIGHT (56) or DAY (57) command.
-      p = get_parameter()
+      p = get_parameter(a)
       r = p
 
     Case 55, 59
       ' x->RM0
       ' Move the Par #1 object to room 0 (the storeroom).
-      p = get_parameter()
+      p = get_parameter(a)
       ia(p) = 0
 
     Case 56
@@ -329,13 +326,13 @@ Sub do_command(cmd)
     Case 58
       ' SETz
       ' Set the Par #1 flag-bit.
-      p = get_parameter()
+      p = get_parameter(a)
       sf = sf Or Int(0.5 + 2^p)
 
     Case 60
       ' CLRz
       ' Clear the Par #1 flag-bit.
-      p = get_parameter()
+      p = get_parameter(a)
       sf = sf And Not Int(0.5 + 2^p)
 
     Case 61
@@ -353,8 +350,8 @@ Sub do_command(cmd)
       ' Move the Par #1 object to the Par #2 room.
       ' This will automatically display the room if the object came from,
       ' or went to the current room.
-      x = get_parameter()
-      ia(x) = get_parameter()
+      x = get_parameter(a)
+      ia(x) = get_parameter(a)
       ' TODO: This isn't automatically displaying the room ?
 
     Case 63
@@ -362,6 +359,7 @@ Sub do_command(cmd)
       ' Tell the player the game is over and ask if they want to play again.
       Print "The game is now over."
       Print "Another game?";
+      Local s$
       Input s$
       If LCase$(Left$(s$, 1)) = "n" Then
         End
@@ -440,8 +438,8 @@ Sub do_command(cmd)
       ' This command exchanges the room locations of the Par #1 object and the
       ' Par #2 object. If the objects in the current room change, the new
       ' description will be displayed.
-      x = get_parameter() ' x = object 1
-      y = get_parameter() ' y = object 2
+      x = get_parameter(a) ' x = object 1
+      y = get_parameter(a) ' y = object 2
       p = ia(x)           ' p = location of object 1
       ia(x) = ia(y)
       ia(y) = p
@@ -457,15 +455,15 @@ Sub do_command(cmd)
 
 End Sub
 
-' x  - current action index
-' ip - parameter pointer
-Function get_parameter()
+' @param   a   current action index
+' @global  ip  parameter pointer
+Function get_parameter(a)
  Local code, value
 
  Do
    ip = ip + 1
-   value = Int(ca(x, ip) / 20)
-   code = ca(x, ip) - value * 20
+   value = Int(ca(a, ip) / 20)
+   code = ca(a, ip) - value * 20
  Loop While code <> 0
 
  get_parameter = value
