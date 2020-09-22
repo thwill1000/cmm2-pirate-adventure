@@ -8,23 +8,25 @@ Option Default Integer
 #Include "data.inc"
 #Include "debug.inc"
 
-Dim lx    ' light duration
-Dim nv(1) ' verb & noun of current command
-Dim df    ' dark flag
-Dim r     ' current room
-Dim sf    ' status flags
-Dim ip    ' action parameter pointer
-Dim f1, f2, f3
+Const ACTION_SUCCESS = 0
+Const ACTION_UNKNOWN = -1
+Const ACTION_NOT_YET = -2
+
+' These global variables hold the current game state
+Dim lx ' light duration
+Dim df ' dark flag
+Dim r  ' current room
+Dim sf ' status flags
+' TODO: move the object location array here
+
+' TODO: This shouldn't be global
+Dim ip ' action parameter pointer
 
 Cls
 
 dat.read("pirate.dat")
 'show_intro()
-
-r = ar  ' current room = starting room
-lx = lt ' light source starts full
-df = 0  ' dark flag is unset
-sf = 0  ' status flags are clear
+reset_state()
 
 'INPUT "USE OLD 'SAVED' GAME? ", S$
 'IF LEFT$(S$,1)<>"Y" THEN Goto 130
@@ -44,6 +46,7 @@ Sub show_intro()
   Print
   Print "TO FIND OUT WHAT YOU'RE CARRYING YOU MIGHT SAY: TAKE INVENTORY"
   Print "TO GO INTO A HOLE YOU MIGHT SAY: GO HOLE"
+
   Print "TO SAVE CURRENT GAME: SAVE GAME"
   Print
   Print "YOU WILL AT TIMES NEED SPECIAL ITEMS TO DO THINGS, BUT I'M SURE YOU'LL BE A GOOD ADVENTURER AND FIGURE THESE THINGS OUT."
@@ -52,20 +55,23 @@ Sub show_intro()
   Cls
 End Sub
 
+Sub reset_state()
+  r = ar  ' current room = starting room
+  lx = lt ' light source starts full
+  df = 0  ' dark flag is unset
+  sf = 0  ' status flags are clear
+End Sub
+
 Sub main_loop()
-  Local _
+  Local noun, nstr$, verb
+
   describe_room()
   Do
+    do_actions(0, 0) ' automatic actions
+    prompt_for_input(verb, noun, nstr$)
     Print
-    nv(0) = 0 ' no verb
-    _ = do_actions() ' automatic actions
-    prompt_for_input()
-    Print
-    Select Case do_actions() ' non-automatic actions
-      Case -1 : Print "I don't understand your command."
-      Case -2 : Print "I can't do that yet."
-    End Select
-    handle_light()
+    do_actions(verb, noun, nstr$)
+    update_light()
   Loop
 End Sub
 
@@ -113,60 +119,80 @@ Sub describe_room()
   Print
 End Sub
 
-Function do_actions()
-  Local a, ok, n, v
-
-  f1 = 1 : f2 = 1 : f3 = 0
+Sub do_actions(verb, noun, nstr$)
+  Local a, an, av, process_action, state
 
   ' Handle "go <direction>"
-  If nv(0) = 1 And nv(1) < 7 Then
-    go_direction()
-    Exit Function
+  If verb = 1 And noun < 7 Then
+    go_direction(noun)
+    Exit Sub
   EndIf
 
-  For a = 0 to cl
-    ok = 0
-    v = Int(ca(a, 0) / 150) ' action - verb
-    n = ca(a, 0) - v * 150  ' action - noun
-    If v = 0 Then
-      ' Automatic action, n is the probability
-      ' TODO: Am I correctly generating numbers in range 1..100
-      f1 = 0
-      ok = (1 + 100 * Rnd()) <= n
-    EndIf
-    If nv(0) = v And nv(1) = n Then ok = 1
-    If nv(0) = v And n = 0 Then ok = 1
+  state = ACTION_UNKNOWN
 
-    If ok Then ok = process_conditions(a)
-    If ok Then do_commands(a)
-    If v <> 0 And ok Then Exit For
+  For a = 0 to cl
+    av = Int(ca(a, 0) / 150) ' action - verb
+    an = ca(a, 0) - av * 150 ' action - noun
+
+    ' Stop processing automatic actions (verb == 0) when we reach the first
+    ' non-zero action verb.
+    If verb = 0 And av <> 0 Then Exit Sub
+
+    If av = 0 And verb = 0 Then
+      ' Automatic action, 'an' is the probability
+      ' TODO: am I correctly generating numbers in range 1..100 ?
+      process_action = (1 + 100 * Rnd()) <= an
+    Else If av = verb And (an = noun Or an = 0) Then
+      ' Verb and noun match, or action noun is 'ANY'
+      process_action = 1
+    Else
+      process_action = 0
+    EndIf
+
+    If process_action Then
+      If process_conditions(a) Then
+        do_commands(a)
+        state = ACTION_SUCCESS
+      Else
+        state = ACTION_NOT_YET
+      EndIf
+    EndIf
+
+    ' Stop processing actions when a non-automatic action succeeds.
+    If state = ACTION_SUCCESS And verb <> 0 Then Exit For
+
   Next a
 
-  ' Completed processing automatic actions
-  If nv(0) = 0 Then Exit Function
+  If state = ACTION_UNKNOWN Then
+    If verb = 10 Then
+      do_get(noun, nstr$)
+      state = ACTION_SUCCESS
+    Else If verb = 18 Then
+      do_drop(noun, nstr$)
+      state = ACTION_SUCCESS
+    End If
+  End If
 
-  If nv(0) = 10 Then do_get(nv(1))
-  If nv(0) = 18 Then do_drop(nv(1))
+  Select Case state
+    Case ACTION_UNKNOWN : Print "I don't understand your command."
+    Case ACTION_NOT_YET : Print "I can't do that yet."
+  End Select
 
-  If f1 Then do_actions = -1
-  If Not f2 Then do_actions = -2
-
-End Function
+End Sub
 
 ' @param  a  current action index
 Function process_conditions(a)
-  Local code, i, value
+  Local code, i, ok, value
 
-  f1 = 0 : f2 = 1 : f3 = 1
+  ok = 1
   For i = 1 To 5
     value = Int(ca(a, i) / 20)
     code = ca(a, i) - value * 20
-    f1 = evaluate_condition(code, value)
-    f2 = f2 And f1
-    If Not f2 Then Exit For
+    ok = ok And evaluate_condition(code, value)
+    If Not ok Then Exit For
   Next i
 
-  process_conditions = f2
+  process_conditions = ok
 End Function
 
 ' @param  a  current action index
@@ -185,12 +211,12 @@ Sub do_commands(a)
   do_command(a, cmd(3))
 End Sub
 
-Sub go_direction()
+Sub go_direction(noun)
   Local l = df
   If l Then l = df And ia(9) <> R and ia(9) <> - 1
   If l Then Print "Dangerous to move in the dark!"
-  If nv(1) < 1 Then Print "Give me a direction too." : Exit Sub
-  Local k = rm(r, nv(1) - 1)
+  If noun < 1 Then Print "Give me a direction too." : Exit Sub
+  Local k = rm(r, noun - 1)
   If k < 1 Then
     If l Then
       Print "I fell down and broke my neck."
@@ -488,71 +514,88 @@ Sub print_object_list(rm)
   If count = 0 Then Print "Nothing" Else Print
 End Sub
 
-Sub prompt_for_input()
+Sub prompt_for_input(verb, noun, nstr$)
   Local s$
 
   Do
     Input "Tell me what to do ? ", s$
-    parse(s$)
-    If Not f1 Then Exit Do
+    parse(s$, verb, noun, nstr$)
+    If verb <> 0 Then Exit Do
     Print "You use word(s) I don't know!"
   Loop
 
 End Sub
 
-Sub parse(s$)
-  Local i, j, k, nt$(2), w$
-  nt$(0) = "" ' current verb
-  nt$(1) = "" ' current noun
+Sub parse(s$, verb, noun, nstr$)
+  Local p, vstr$
 
-  For i = 1 To Len(s$)
-    If Mid$(s$, i, 1) = " " Then
-      k = 1
-    Else
-      nt$(k) = nt$(k) + Mid$(s$, i, 1)
-    EndIf
-  Next i
+  vstr$ = ""
+  nstr$ = ""
 
-  nt$(0) = LCase$(Left$(nt$(0), ln))
-  nt$(1) = LCase$(Left$(nt$(1), ln))
+  p = InStr(s$, " ")
+  If p < 1 Then p = Len(s$) + 1
+  vstr$ = Left$(s$, p - 1)
+  Do While Mid$(s$, p, 1) = " " : p = p + 1 : Loop
+  nstr$= Mid$(s$, p, Len(s$) - p + 1)
 
-  For i = 0 To 1
-    ' i = 0 for verb, 1 for noun.
-    nv(i) = 0
-    If nt$(i) <> "" Then
-      For j = 0 To nl
-        w$ = nv_str$(j, i)
-        If Left$(w$, 1) = "*" Then w$ = Mid$(w$, 2)
-        If i = 1 And j < 7 Then w$ = Left$(w$, ln)
-        If nt$(i) = LCase$(w$) Then
-          ' Word found, if it's a synonym then use previous word
-          nv(i) = j
-          Do While Left$(nv_str$(nv(i), i), 1) = "*"
-            nv(i) = nv(i) - 1
-          Loop
-          Exit For
-        EndIf
-      Next j
-    EndIf
-  Next i
+  vstr$ = LCase$(Left$(vstr$, ln))
+  nstr$ = LCase$(Left$(nstr$, ln))
 
-  Print "verb =" nv(0) ", noun =" nv(1)
+  verb = lookup_word(vstr$, 0)
+  noun = lookup_word(nstr$, 1)
 
-  f1 = nv(0) < 1 Or Len(nt$(1)) > 0 And nv(1) < 1
+  ' Hack to allow use of common abbreviations, and avoid typing 'go'.
+  If verb = 0 Then
+    Select Case vstr$
+      Case "n", "north" : verb = 1 : noun = 1
+      Case "s", "south" : verb = 1 : noun = 2
+      Case "e", "east"  : verb = 1 : noun = 3
+      Case "w", "west"  : verb = 1 : noun = 4
+      Case "u", "up"    : verb = 1 : noun = 5
+      Case "d", "down"  : verb = 1 : noun = 6
+      Case "i"          : verb = 25
+    End Select
+  End If
+
+  If noun <> 0 Then nstr$ = LCase$(nv_str$(noun, 1)) ' to use correct synonym
+
+'  Print "verb =" verb ", noun =" noun ", nstr$ = " nstr$
 End Sub
 
-Sub do_get(noun)
+Function lookup_word(word$, dict)
+  Local i, s$
+
+  lookup_word = 0
+
+  If word$ = "" Then Exit Function
+
+  For i = 0 To nl
+    s$ = nv_str$(i, dict)
+    If Left$(s$, 1) = "*" Then s$ = Mid$(s$, 2)
+    If dict = 1 And i < 7 Then s$ = Left$(s$, ln)
+    If word$ = LCase$(s$) Then
+      ' Word found, if it's a synonym then use previous word
+      lookup_word = i
+      Do While Left$(nv_str$(lookup_word, dict), 1) = "*"
+        lookup_word = lookup_word - 1
+      Loop
+      Exit For
+    EndIf
+  Next i
+End Function
+
+Sub do_get(noun, nstr$)
   Local carried = 0, i, k
 
-  If noun = 0 Then Print "What?" : f1 = 0 : Exit Sub
+  If nstr$ = "" Then Print "What?" : Exit Sub
 
   For i = 0 To il
     If ia(i) = -1 Then carried = carried + 1
   Next i
-  If carried >= mx Then Print "I've too much to carry!" : f1 = 0 : Exit Sub
+  If carried >= mx Then Print "I've too much to carry!" : Exit Sub
 
   For i = 0 To il
-    If obj_noun$(i) = nv_str$(noun, 1) Then
+    If LCase$(obj_noun$(i)) = nstr$ Then
       If ia(i) = r Then
         ia(i) = -1
         k = 3
@@ -568,10 +611,11 @@ Sub do_get(noun)
   Else If k = 0 Then
     Print "It's beyond my power to do that."
   Else
-    Print "OK, " : Print
+    Print "OK, ";
   End If
 End Sub
 
+' Gets the noun for referring to the given object.
 Function obj_noun$(i)
   Local en, st
 
@@ -585,13 +629,13 @@ Function obj_noun$(i)
   If Len(obj_noun$) > ln Then Error "Object noun too long: " + obj_noun$
 End Function
 
-Sub do_drop(noun)
+Sub do_drop(noun, nstr$)
   Local i, k = 0
 
-  If noun = 0 Then Print "What?" : f = 0 : Exit Sub
+  If nstr$ = "" Then Print "What?" : Exit Sub
 
   For i = 0 To il
-    If obj_noun$(i) = nv_str$(noun, 1) Then
+    If LCase$(obj_noun$(i)) = nstr$ Then
       If ia(i) = -1 Then
         ia(i) = r
         k = 3
@@ -607,12 +651,12 @@ Sub do_drop(noun)
   Else If k = 0 Then
     Print "It's beyond my power to do that."
   Else
-    Print "OK, " : Print
+    Print "OK, ";
   End If
 
 End Sub
 
-Sub handle_light()
+Sub update_light()
   ' If carrying the lit light source ...
   If ia(9) = -1 Then
     lx = lx - 1 ' decrement its duration
