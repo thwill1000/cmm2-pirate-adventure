@@ -9,6 +9,8 @@ Option Default Integer
 #Include "data.inc"
 #Include "debug.inc"
 
+CON.WIDTH = 80
+
 Const STATE_CONTINUE = 0
 Const STATE_QUIT = 1
 Const STATE_RESTART = 2
@@ -44,18 +46,16 @@ Sub main()
     game_loop()
   Loop While state <> STATE_QUIT
 
-  Print "Goodbye!"
+  con.out("Goodbye!") : con.endl()
 End Sub
 
 Sub show_intro(f$)
-  Local s$
-
   Cls
-  cecho(f$)
-  Print "   Scott Adams Adventure Interpreter for Colour Maximite 2"
-  Print "                (c) Thomas Hugo Williams 2020"
-  Print
-  Input "                    Press any key to start ", s$
+  con.echo(f$)
+  con.out("   Scott Adams Adventure Interpreter for Colour Maximite 2") : con.endl()
+  con.out("                (c) Thomas Hugo Williams 2020") : con.endl()
+  con.endl()
+  Local s$ = con.in$("                    Press any key to start ")
 End Sub
 
 Sub reset_state()
@@ -73,7 +73,7 @@ Sub game_loop()
   Do
     do_actions() ' handle automatic actions
     prompt_for_input(verb, noun, nstr$)
-    Print
+    con.endl()
     do_actions(verb, noun, nstr$) ' handle player actions
     If state = STATE_CONTINUE Then update_light()
   Loop While state = STATE_CONTINUE
@@ -84,31 +84,32 @@ Sub describe_room()
 
   ' Object 9 is the lit light source.
   If df And ia(9) <> -1 And ia(9) <> r Then
-    Print "I can't see, its too dark!"
+    con.out("I can't see, its too dark!") : con.endl()
     Exit Sub
   EndIf
 
   If Left$(rs$(r), 1) = "*" Then
     ' A leading asterisk means use the room description verbatim.
-    Print Mid$(rs$(r), 2)
+    con.out(Mid$(rs$(r), 2)) : con.endl()
   Else
-    Print "I'm in a " + rs$(r)
+    con.out("I'm in a " + rs$(r)) : con.endl()
   EndIf
 
-  Print "Obvious exits: ";
+  con.out("Obvious exits: ")
   For i = 0 To 5
     If rm(r, i) <> 0 Then
-      Print nv_str$(i + 1, 1) " ";
+      con.out(nv_str$(i + 1, 1) + " ")
       count = count + 1
     EndIf
   Next i
-  If count = 0 Then Print "NONE" Else Print
+  If count = 0 Then con.out("NONE")
+  con.endl()
 
-  Print "Visible items: ";
+  con.out("Visible items: ")
   print_object_list(r, "None")
 
-  Print "<" String$(78, "-") ">"
-  Print
+  con.out("<" + String$(CON.WIDTH - 3, "-") + ">") : con.endl()
+  con.endl()
 End Sub
 
 Sub print_object_list(rm, none$)
@@ -117,17 +118,18 @@ Sub print_object_list(rm, none$)
   For i = 0 To il
     If ia(i) = rm Then
       count = count + 1
-      If count > 1 Then Print ", ";
+      If count > 1 Then con.out(", ")
       p = InStr(ia_str$(i), "/")
       If p < 1 Then
-        Print ia_str$(i);
+        con.out(ia_str$(i))
       Else
-        Print Left$(ia_str$(i), p - 1);
+        con.out(Left$(ia_str$(i), p - 1))
       EndIf
     EndIf
   Next i
 
-  If count = 0 Then Print none$ Else Print
+  If count = 0 Then con.out(none$)
+  con.endl()
 End Sub
 
 Sub do_actions(verb, noun, nstr$)
@@ -187,8 +189,8 @@ Sub do_actions(verb, noun, nstr$)
   End If
 
   Select Case result
-    Case ACTION_UNKNOWN : Print "I don't understand your command."
-    Case ACTION_NOT_YET : Print "I can't do that yet."
+    Case ACTION_UNKNOWN : con.out("I don't understand your command.") : con.endl()
+    Case ACTION_NOT_YET : con.out("I can't do that yet.") : con.endl()
   End Select
 
 End Sub
@@ -227,16 +229,16 @@ End Sub
 Sub go_direction(noun)
   Local l = df
   If l Then l = df And ia(9) <> R and ia(9) <> - 1
-  If l Then Print "Dangerous to move in the dark!"
-  If noun < 1 Then Print "Give me a direction too." : Exit Sub
+  If l Then con.out("Dangerous to move in the dark!") : con.endl()
+  If noun < 1 Then con.out("Give me a direction too.") : con.endl() : Exit Sub
   Local k = rm(r, noun - 1)
   If k < 1 Then
     If l Then
-      Print "I fell down and broke my neck."
+      con.out("I fell down and broke my neck.") : con.endl()
       k = rl
       df = 0
     Else
-      Print "I can't go in that direction."
+      con.out("I can't go in that direction.") : con.endl()
       Exit Sub
     EndIf
   EndIf
@@ -314,7 +316,7 @@ Sub do_command(a, cmd)
 
     Case 1 To 51
       ' Display corresponding message.
-      Print ms$(cmd)
+      con.out(ms$(cmd)) : con.endl()
 
     Case 52
       ' GETx
@@ -324,7 +326,8 @@ Sub do_command(a, cmd)
       For i = 1 To il
         If ia(i) = -1 Then x = x + 1
       Next i
-      If x > mx Then Print "I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-"
+      ' TODO: this should terminate pickup
+      If x > mx Then con.out("I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-") : con.endl()
       p = get_parameter(a)
       ia(p) = -1
 
@@ -379,7 +382,7 @@ Sub do_command(a, cmd)
       ' Tell the player they are dead,
       ' Goto the last room (usually some form of limbo),
       ' make it DAY and display the room.
-      Print "I'M DEAD..."
+      con.out("I'M DEAD...") : con.endl()
       r = rl
       df = 0
       do_command(64)
@@ -396,9 +399,8 @@ Sub do_command(a, cmd)
     Case 63
       ' FINI
       ' Tell the player the game is over and ask if they want to play again.
-      Print "The game is now over."
-      Local s$
-      Input "Would you like to play again ? ", s$
+      con.out("The game is now over.") : con.endl()
+      Local s$ = con.in$("Would you like to play again ? ")
       If LCase$(Left$(s$, 1)) = "n" Then state = STATE_QUIT Else state = STATE_RESTART
 
     Case 64
@@ -418,17 +420,17 @@ Sub do_command(a, cmd)
       For i = 1 To il
         If ia(i) = tr And Left$(ia_str$(i), 1) = "*" Then x = x + 1
       Next i
-      Print "I've stored " Str$(x) " treasures. On a scale of 0 to 100 that rates a ";
-      Print Str$(Int(x/tt*100)) "."
+      con.out("I've stored " + Str$(x) + " treasures. On a scale of 0 to 100 that rates a ")
+      con.out(Str$(Int(x/tt*100)) + ".") : con.endl()
       If x = tt Then
-        Print "Well done."
+        con.out("Well done.") : con.endl()
         Goto 850
       EndIf
 
     Case 66
       ' INV
       ' Tells the player what objects they are carrying.
-      Print "I'm carrying: ";
+      con.out("I'm carrying: ")
       print_object_list(-1, "Nothing")
 
     Case 67
@@ -477,7 +479,7 @@ Sub do_command(a, cmd)
 
     Case 102 To 149
       ' Display corresponding message.
-      Print ms$(cmd - 50)
+      con.out(ms$(cmd - 50)) : con.endl()
 
     Case Else
       Error "Unknown command: " + Str$(cmd)
@@ -504,10 +506,10 @@ Sub prompt_for_input(verb, noun, nstr$)
   Local s$
 
   Do
-    Input "Tell me what to do ? ", s$
+    s$ = con.in$("Tell me what to do ? ")
     parse(s$, verb, noun, nstr$)
     If verb <> 0 Then Exit Do
-    Print "You use word(s) I don't know!"
+    con.out("You use word(s) I don't know!") : con.endl()
   Loop
 
 End Sub
@@ -576,12 +578,12 @@ End Function
 Sub do_get(nstr$)
   Local carried = 0, i, k
 
-  If nstr$ = "" Then Print "What?" : Exit Sub
+  If nstr$ = "" Then con.out("What?") : con.endl() : Exit Sub
 
   For i = 0 To il
     If ia(i) = -1 Then carried = carried + 1
   Next i
-  If carried >= mx Then Print "I've too much to carry!" : Exit Sub
+  If carried >= mx Then con.out("I've too much to carry!") : con.endl() : Exit Sub
 
   For i = 0 To il
     If LCase$(obj_noun$(i)) = nstr$ Then
@@ -596,11 +598,11 @@ Sub do_get(nstr$)
   Next i
 
   If k = 2 Then
-    Print "I don't see it here."
+    con.out("I don't see it here.") : con.endl()
   Else If k = 0 Then
-    Print "It's beyond my power to do that."
+    con.out("It's beyond my power to do that.") : con.endl()
   Else
-    Print "OK, ";
+    con.out("OK, ")
   End If
 End Sub
 
@@ -622,7 +624,7 @@ End Function
 Sub do_drop(nstr$)
   Local i, k = 0
 
-  If nstr$ = "" Then Print "What?" : Exit Sub
+  If nstr$ = "" Then con.out("What?") : con.endl() : Exit Sub
 
   For i = 0 To il
     If LCase$(obj_noun$(i)) = nstr$ Then
@@ -637,11 +639,11 @@ Sub do_drop(nstr$)
   Next i
 
   If k = 1 Then
-    Print "I'm not carrying it!"
+    con.out("I'm not carrying it!") : con.endl()
   Else If k = 0 Then
-    Print "It's beyond my power to do that."
+    con.out("It's beyond my power to do that.") : con.endl()
   Else
-    Print "OK, ";
+    con.out("OK, ")
   End If
 
 End Sub
@@ -651,10 +653,10 @@ Sub update_light()
   If ia(9) = -1 Then
     lx = lx - 1 ' decrement its duration
     If lx < 0 Then
-      Print "Light has run out!"
+      con.out("Light has run out!") : con.endl()
       ia(9) = 0
     ElseIf lx < 25 Then
-      Print "Light runs out in " Str$(lx) " turns!"
+      con.out("Light runs out in " + Str$(lx) + " turns!") : con.endl()
     EndIf
   EndIf
 End Sub
