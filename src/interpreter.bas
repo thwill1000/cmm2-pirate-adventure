@@ -5,109 +5,119 @@
 Option Explicit On
 Option Default Integer
 
+#Include "console.inc"
 #Include "data.inc"
 #Include "debug.inc"
 
-Const ACTION_SUCCESS = 0
-Const ACTION_UNKNOWN = -1
-Const ACTION_NOT_YET = -2
+Const STATE_CONTINUE = 0
+Const STATE_QUIT = 1
+Const STATE_RESTART = 2
+
+Const ACTION_PERFORMED = 3
+Const ACTION_UNKNOWN = 4
+Const ACTION_NOT_YET = 5
 
 ' These global variables hold the current game state
 Dim lx ' light duration
 Dim df ' dark flag
 Dim r  ' current room
 Dim sf ' status flags
-' TODO: move the object location array here
+' And ia() which contains the current object locations,
+' but is declared by data.read()
+
+Dim state
 
 ' TODO: This shouldn't be global
 Dim ip ' action parameter pointer
 
-Cls
-
-dat.read("pirate.dat")
-'show_intro()
-reset_state()
-
-'INPUT "USE OLD 'SAVED' GAME? ", S$
-'IF LEFT$(S$,1)<>"Y" THEN Goto 130
-'110 IFD<>-1THENCLOSE:OPEN"I",D,SV$ELSEINPUT"READY SAVED TAPE "K$:PRINT;INT(IL*5/60)+1;" MINUTES"
-'120 d=OPENIN("SAV"):INPUT#d,SF,LX,DF,R:FORX=0TOIL:INPUT#d,IA(X):NEXT:CLOSE#d:IFD<>-1CLOSE
-
-main_loop()
+main()
 End
 
-Sub show_intro()
+Sub main()
+  dat.read("pirate.dat")
+  show_intro("pirate.title")
+
+  Do
+    Cls
+    reset_state()
+    describe_room()
+    game_loop()
+  Loop While state <> STATE_QUIT
+
+  Print "Goodbye!"
+End Sub
+
+Sub show_intro(f$)
   Local s$
 
   Cls
-' Print'"*** WELCOME TO ADVENTURE LAND.(#4.6) ***":PRINT:PRINT" UNLESS TOLD DIFFERENTLY YOU MUST FIND"'"*TREASURES* AND RETURN THEM TO THEIR"'"PROPER PLACE!"
-  Print "I'M YOUR PUPPET. GIVE ME ENGLISH COMMANDS THAT ";
-  Print "CONSIST OF A NOUN AND VERB. SOME EXAMPLES..."
+  cecho(f$)
+  Print "   Scott Adams Adventure Interpreter for Colour Maximite 2"
+  Print "                (c) Thomas Hugo Williams 2020"
   Print
-  Print "TO FIND OUT WHAT YOU'RE CARRYING YOU MIGHT SAY: TAKE INVENTORY"
-  Print "TO GO INTO A HOLE YOU MIGHT SAY: GO HOLE"
-
-  Print "TO SAVE CURRENT GAME: SAVE GAME"
-  Print
-  Print "YOU WILL AT TIMES NEED SPECIAL ITEMS TO DO THINGS, BUT I'M SURE YOU'LL BE A GOOD ADVENTURER AND FIGURE THESE THINGS OUT."
-  Print
-  Input "HAPPY ADVENTURING... HIT ENTER TO START", s$
-  Cls
+  Input "                    Press any key to start ", s$
 End Sub
 
 Sub reset_state()
+  Local i
   r = ar  ' current room = starting room
   lx = lt ' light source starts full
   df = 0  ' dark flag is unset
   sf = 0  ' status flags are clear
+  For i = 0 To il : ia(i) = i2(i) : Next i ' initial object locations
+  state = STATE_CONTINUE
 End Sub
 
-Sub main_loop()
+Sub game_loop()
   Local noun, nstr$, verb
-
-  describe_room()
   Do
-    do_actions(0, 0) ' automatic actions
+    do_actions() ' handle automatic actions
     prompt_for_input(verb, noun, nstr$)
     Print
-    do_actions(verb, noun, nstr$)
-    update_light()
-  Loop
+    do_actions(verb, noun, nstr$) ' handle player actions
+    If state = STATE_CONTINUE Then update_light()
+  Loop While state = STATE_CONTINUE
 End Sub
 
 Sub describe_room()
-  Local i, k, p
+  Local count, i
 
-  If df Then
-    ' Object 9 is the torch.
-    If ia(9) <> -1 And ia(9) <> r Then
-      Print "I can't see, its too dark!"
-      Exit Sub
-    EndIf
+  ' Object 9 is the lit light source.
+  If df And ia(9) <> -1 And ia(9) <> r Then
+    Print "I can't see, its too dark!"
+    Exit Sub
   EndIf
 
   If Left$(rs$(r), 1) = "*" Then
+    ' A leading asterisk means use the room description verbatim.
     Print Mid$(rs$(r), 2)
   Else
     Print "I'm in a " + rs$(r)
   EndIf
 
   Print "Obvious exits: ";
-  k = 0
   For i = 0 To 5
     If rm(r, i) <> 0 Then
       Print nv_str$(i + 1, 1) " ";
-      k = k + 1
+      count = count + 1
     EndIf
   Next i
-  If k = 0 Then Print "NONE" Else Print
+  If count = 0 Then Print "NONE" Else Print
 
-  k = 0
+  Print "Visible items: ";
+  print_object_list(r, "None")
+
+  Print "<" String$(78, "-") ">"
+  Print
+End Sub
+
+Sub print_object_list(rm, none$)
+  Local count, i, p
+
   For i = 0 To il
-    If ia(i) = r Then
-      If k = 0 Then Print "Visible items here: ";
-      k = k + 1
-      If k > 1 Then Print ", ";
+    If ia(i) = rm Then
+      count = count + 1
+      If count > 1 Then Print ", ";
       p = InStr(ia_str$(i), "/")
       If p < 1 Then
         Print ia_str$(i);
@@ -116,11 +126,12 @@ Sub describe_room()
       EndIf
     EndIf
   Next i
-  Print
+
+  If count = 0 Then Print none$ Else Print
 End Sub
 
 Sub do_actions(verb, noun, nstr$)
-  Local a, an, av, process_action, state
+  Local a, an, av, process_action, result
 
   ' Handle "go <direction>"
   If verb = 1 And noun < 7 Then
@@ -128,7 +139,7 @@ Sub do_actions(verb, noun, nstr$)
     Exit Sub
   EndIf
 
-  state = ACTION_UNKNOWN
+  result = ACTION_UNKNOWN
 
   For a = 0 to cl
     av = Int(ca(a, 0) / 150) ' action - verb
@@ -152,28 +163,30 @@ Sub do_actions(verb, noun, nstr$)
     If process_action Then
       If process_conditions(a) Then
         do_commands(a)
-        state = ACTION_SUCCESS
+        result = ACTION_PERFORMED
       Else
-        state = ACTION_NOT_YET
+        result = ACTION_NOT_YET
       EndIf
     EndIf
 
-    ' Stop processing actions when a non-automatic action succeeds.
-    If state = ACTION_SUCCESS And verb <> 0 Then Exit For
+    ' Stop processing actions when a non-automatic action is performed.
+    If verb <> 0 And result = ACTION_PERFORMED Then Exit For
 
   Next a
 
-  If state = ACTION_UNKNOWN Then
+  ' Whilst the action table contains some specialist pickup and drop handling
+  ' the general case is handled by this code.
+  If result = ACTION_UNKNOWN Then
     If verb = 10 Then
-      do_get(noun, nstr$)
-      state = ACTION_SUCCESS
+      do_get(nstr$)
+      result = ACTION_PERFORMED
     Else If verb = 18 Then
-      do_drop(noun, nstr$)
-      state = ACTION_SUCCESS
+      do_drop(nstr$)
+      result = ACTION_PERFORMED
     End If
   End If
 
-  Select Case state
+  Select Case result
     Case ACTION_UNKNOWN : Print "I don't understand your command."
     Case ACTION_NOT_YET : Print "I can't do that yet."
   End Select
@@ -384,17 +397,9 @@ Sub do_command(a, cmd)
       ' FINI
       ' Tell the player the game is over and ask if they want to play again.
       Print "The game is now over."
-      Print "Another game?";
       Local s$
-      Input s$
-      If LCase$(Left$(s$, 1)) = "n" Then
-        End
-      Else
-        For i = 0 To il
-          ia(i) = i2(i)
-        Next i
-        Goto 100 ' TODO: Restart
-      EndIf
+      Input "Would you like to play again ? ", s$
+      If LCase$(Left$(s$, 1)) = "n" Then state = STATE_QUIT Else state = STATE_RESTART
 
     Case 64
       ' DspRM
@@ -424,7 +429,7 @@ Sub do_command(a, cmd)
       ' INV
       ' Tells the player what objects they are carrying.
       Print "I'm carrying: ";
-      print_object_list(-1)
+      print_object_list(-1, "Nothing")
 
     Case 67
       ' SET0
@@ -495,25 +500,6 @@ Function get_parameter(a)
  get_parameter = value
 End Function
 
-Sub print_object_list(rm)
-  Local count, i, p
-
-  For i = 0 To il
-    If ia(i) = rm Then
-      count = count + 1
-      If count > 1 Then Print ", ";
-      p = InStr(ia_str$(i), "/")
-      If p < 1 Then
-        Print ia_str$(i);
-      Else
-        Print Left$(ia_str$(i), p - 1);
-      EndIf
-    EndIf
-  Next i
-
-  If count = 0 Then Print "Nothing" Else Print
-End Sub
-
 Sub prompt_for_input(verb, noun, nstr$)
   Local s$
 
@@ -562,6 +548,8 @@ Sub parse(s$, verb, noun, nstr$)
 '  Print "verb =" verb ", noun =" noun ", nstr$ = " nstr$
 End Sub
 
+' @param  word$  word to lookup
+' @param  dict   dictionary to look in, 0 for verbs and 1 for nouns
 Function lookup_word(word$, dict)
   Local i, s$
 
@@ -584,7 +572,8 @@ Function lookup_word(word$, dict)
   Next i
 End Function
 
-Sub do_get(noun, nstr$)
+' Picks up the object identified by 'nstr$'
+Sub do_get(nstr$)
   Local carried = 0, i, k
 
   If nstr$ = "" Then Print "What?" : Exit Sub
@@ -629,7 +618,8 @@ Function obj_noun$(i)
   If Len(obj_noun$) > ln Then Error "Object noun too long: " + obj_noun$
 End Function
 
-Sub do_drop(noun, nstr$)
+' Drops the object identified by 'nstr$'
+Sub do_drop(nstr$)
   Local i, k = 0
 
   If nstr$ = "" Then Print "What?" : Exit Sub
