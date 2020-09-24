@@ -8,6 +8,8 @@ Option Default Integer
 #Include "console.inc"
 #Include "data.inc"
 #Include "debug.inc"
+#Include "file.inc"
+#Include "persist.inc"
 
 CON.WIDTH = 80
 
@@ -18,6 +20,8 @@ Const STATE_RESTART = 2
 Const ACTION_PERFORMED = 3
 Const ACTION_UNKNOWN = 4
 Const ACTION_NOT_YET = 5
+
+Dim SAVE_DIR$
 
 ' These global variables hold the current game state
 Dim lx ' light duration
@@ -32,16 +36,21 @@ Dim state
 ' TODO: This shouldn't be global
 Dim ip ' action parameter pointer
 
-main()
+main("pirate")
 End
 
-Sub main()
-  dat.read("pirate.dat")
-  show_intro("pirate.title")
+Sub main(story$)
+  Local s$
+
+  SAVE_DIR$ = FIL.PROG_DIR$ + "/save"
+  dat.read(story$ + ".dat")
+  show_intro(story$ + ".title")
 
   Do
     Cls
     reset_state()
+    s$ = con.in$("Would you like to restore a saved game [y|N]? ")
+    If LCase$(s$) = "y" Then do_load()
     describe_room()
     game_loop()
   Loop While state <> STATE_QUIT
@@ -87,6 +96,8 @@ Sub describe_room()
     con.out("I can't see, its too dark!") : con.endl()
     Exit Sub
   EndIf
+
+  Cls
 
   If Left$(rs$(r), 1) = "*" Then
     ' A leading asterisk means use the room description verbatim.
@@ -458,13 +469,8 @@ Sub do_command(a, cmd)
 
     Case 71
       ' SAVEz
-      ' This command saves the game to tape or disk, depending on which version
-      ' is used. It writes some user variables such as time limit and the
-      ' current room and the current locations of all objects out as a saved
-      ' game.
-      '710 PRINT"SAVING GAME":IFD=-1 INPUT"READY OUTPUT TAPE "K$:PRINT;INT(IL*5/60)+1;" MINUTES"ELSE OPEN"O",D,SV$
-      '720 d=OPENOUT("SAV"):PRINT#d,SF,LX,DF,R:FORW=0TOIL:PRINT#d,IA(W):NEXT:CLOSE#d:IFD<>-1CLOSE
-      '730 GOTO960
+      ' This command saves the current game state to a file.
+      do_save()
 
     Case 72
       ' EXx,x
