@@ -1,128 +1,119 @@
 ' Copyright (c) 2019-20 Thomas Hugo Williams
 ' For Colour Maximite 2, MMBasic 5.05
 
+' Saves the current game state to a file.
 Sub do_save()
-  Local _ = zsave(0)
-End Sub
+  Local f$, i, game, s$
 
-Sub do_load()
-  Local _ = zsave(1)
-End Sub
+  con.out("Select saved game slot:") : con.endl()
+  game = select_game()
+  If game <> 0 Then f$ = save_file$(game)
 
-' Save/Restore game
-'
-' NOTE: Use a single subroutine to cover both because of the 50 subroutine
-'       limit in MMBasic 4.5 on the CMM1
-'
-' @param  res  set 0 to save and 1 to restore
-' @return      1 on success, 0 on failure or if cancelled
-Function zsave(res)
-  Local exists(10), i, old_dir$, s$, s2$(2) Length 40
+  If game <> 0 And fil.exists%(f$) Then
+    s$ = con.in$("Overwrite game " + Str$(game) + " [y|N]? ")
+    If LCase$(s$) <> "y" Then game = 0
+  End If
 
-  fil.mkdir(SAVE_DIR$)
-
-  If res Then
-    con.out("Select game to restore:") : con.endl()
-  Else
-    con.out("Select save game slot:") : con.endl()
-  EndIf
-
-'  old_dir$ = Cwd$
-'  ChDir SAVE_DIR$
-  For i = 1 To 10
-    s$ = Dir$(SAVE_DIR$ + "/game" + Str$(i) + ".sav")
-    con.out("  [" + Format$(i, "%2g") + "] ")
-    If s$ = "" Then
-      con.out("Empty") : con.endl()
-    Else
-      exists(i) = 1
-      Open (SAVE_DIR$ + "/game" + Str$(i) + ".sav") For Input As #1
-      Line Input #1, s2$(0) ' header
-      Line Input #1, s2$(1) ' version
-      Line Input #1, s2$(2) ' date/time
-      Line Input #1, s$     ' game name
-      ' TODO: verify header / version
-      con.out(s2$(2) + " - " + s$) : con.endl()
-      Close #1
-    EndIf
-  Next i
-'  ChDir old_dir$
-
-  s$ = con.in$("Game number? ")
-  i = Val(s$)
-  If i < 1 Or i > 10 Then i = 0
-
-  If i > 0 And res And Not exists(i) Then i = 0
-
-  If i > 0 And Not res And exists(i) Then
-    s$ = con.in$("Overwrite game " + Str$(i) + " [y|N]? ")
-    If LCase$(s$) <> "y" Then i = 0
-  EndIf
-
-  If i > 0 And Not res Then
+  If game <> 0 Then
     s$ = con.in$("Save game name? ")
-    If s$ = "" Then i = 0
-  EndIf
+    If s$ = "" Then game = 0
+  End If
 
-  If i = 0 Then con.out("Cancelled") : con.endl() : Exit Function
+  If game = 0 Then con.out("Cancelled") : con.endl() : Exit Sub
 
-  s2$(0) = SAVE_DIR$ + "\game" + Str$(i) + ".sav"
+  con.out("Saving '" + f$ + "' ...") : con.endl()
 
-  If res Then
-    Open s2$(0) For Input As #1
+  Open f$ For Output As #1
 
-    ' Read text header
-    Line Input #1, s2$(0)
-    Line Input #1, s2$(1)
-    Line Input #1, s2$(2)
+  ' Write file header
+  Print #1, "SAINT save file"
+  Print #1, "1"
+  Print #1, Date$ + " " + Time$
+  Print #1, s$
+
+  ' Write state
+  Print #1, "&b" Bin$(sf, 32) ' status flags
+  Print #1, Str$(df)          ' dark flag
+  Print #1, Str$(r)           ' current room
+  Print #1, Str$(lx)          ' light duration
+  For i = 0 To il : Print #1, Str$(ia(i)) : Next i ' object locations
+
+  Close #1
+End Sub
+
+' Gets the path to the file corresponding to save game slot 'i'.
+Function save_file$(i)
+  If i < 1 Or i > 10 Then Error "Invalid save slot"
+  save_file$ = SAVE_DIR$ + "/game" + Str$(i) + ".sav"
+End Function
+
+' Restores game state from a file.
+Sub do_load()
+  Local err$, f$, i, game, s$, values(4 + il)
+
+  con.out("Select saved game to restore from:") : con.endl()
+  game = select_game()
+  If game <> 0 Then f$ = save_file$(game)
+
+  If game <> 0 And Not fil.exists%(f$) Then game = 0
+
+  If game = 0 Then con.out("Cancelled") : con.endl() : Exit Sub
+
+  Open f$ For Input As #1
+
+  ' Read file header
+  Line Input #1, s$
+  Line Input #1, s$
+  Line Input #1, s$
+  Line Input #1, s$
+  con.out("Restoring '" + s$ + "' ...") : con.endl()
+
+  For i = 0 To 4 + il
     Line Input #1, s$
-    con.out("Restoring '" + s$ + "' ...") : con.endl()
+    If s$ = "" Then err$ = "missing data" : Exit For
+    values(i) = Val(s$)
+  Next i
+  If Not Eof(#1) And err$ = "" Then err$ = "unexpected data"
 
-    Local err$, values(4 + il), tmp$
-    For i = 0 To 4 + il
-      Line Input #1, tmp$
-      If tmp$ = "" Then
-        err$ = "missing data"
-        Exit For
-      Else
-        values(i) = Val(tmp$)
-      End If
-    Next i
-    If err$ = "" And Not Eof(#1) Then err$ = "unexpected data"
-
-    If err$ <> "" Then
-      con.out("Save file is invalid: " + err$) : con.endl()
-      Close #1
-      Exit Function
-    EndIf
-
+  If err$ = "" Then
     ' Update game state with values read from file.
     sf = values(0)
     df = values(1)
     r  = values(2)
     lx = values(3)
     For i = 4 To il + 4 : ia(i - 4) = values(i) : Next i
-
   Else
-    con.out("Saving '" + s$ + "' ...") : con.endl()
-    Open s2$(0) For Output As #1
-
-    ' Write text header
-    Print #1, "SAINT save file"
-    Print #1, "1"
-    Print #1, Date$ + " " + Time$
-    Print #1, s$
-
-    ' Write state
-    Print #1, "&b" Bin$(sf, 32) ' status flags
-    Print #1, Str$(df)          ' dark flag
-    Print #1, Str$(r)           ' current room
-    Print #1, Str$(lx)          ' light duration
-    For i = 0 To il : Print #1, Str$(ia(i)) : Next i ' object locations
-
-  EndIf
+    con.out("Save file is invalid: " + err$) : con.endl()
+  End If
 
   Close #1
-  zsave = 1
+End Sub
+
+' Prompts the user to select a save game slot.
+Function select_game()
+  Local i, f$, s$(3) Length 64
+
+  fil.mkdir(SAVE_DIR$)
+
+  For i = 1 To 10
+    f$ = save_file$(i)
+    con.out("  [" + Format$(i, "%2g") + "] ")
+    If fil.exists%(f$) Then
+      Open f$ For Input As #1
+      Line Input #1, s$(0) ' header
+      Line Input #1, s$(1) ' version
+      Line Input #1, s$(2) ' date/time
+      Line Input #1, s$(3) ' game name
+      Close #1
+      ' TODO: verify header / version ?
+      con.out(s$(2) + " - " + s$(3)) : con.endl()
+    Else
+      con.out("Empty") : con.endl()
+    End If
+  Next i
+
+  s$(0) = con.in$("Save slot ? ")
+  select_game = Val(s$(0))
+  If select_game < 1 Or select_game > 10 Then select_game = 0
 
 End Function
