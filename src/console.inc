@@ -1,49 +1,35 @@
 ' Copyright (c) 2020 Thomas Hugo Williams
 ' For Colour Maximite 2, MMBasic 5.05
 
-Dim script    ' bit 1 is set for writing (via #2),
-              ' bit 2 is set for reading (via #3)
-Dim con.buf$  ' console write buffer
-Dim con.space ' was the last character written to con.buf$ a space?
-Dim con.lines ' number of lines that have been output since the last prompt
-Dim con.count ' number of consecutive calls to con.endl() without an
-              ' intervening call to con.out()
-Dim con.x = 1 ' current horizontal cursor position, indexed from 1
-Dim con.spin  ' is the spinning cursor currently displayed?
+Dim con.buf$   ' console write buffer
+Dim con.space  ' was the last character written to con.buf$ a space?
+Dim con.lines  ' number of lines that have been output since the last prompt
+Dim con.count  ' number of consecutive calls to con.endl() without an
+               ' intervening call to con.out()
+Dim con.x = 1  ' current horizontal cursor position, indexed from 1
+Dim con.spin   ' is the spinning cursor currently displayed?
+Dim con.fd_in  ' file descriptor to read input from
+Dim con.fd_out ' file descriptor to echo input to
+Dim con.echo   ' if 1 then echo non-empty input to 'con.fd_out'
 
 '!comment_if INLINE_CONSTANTS
-Const S_WRITE = &b01
-Const S_READ  = &b10
-
 Dim CON.HEIGHT = 50
 Dim CON.WIDTH = 100
 '!endif
 
 ' @param  p$  prompt
-' @param  r   if 1 then write input to the script
-Function con.in$(p$, r)
+Function con.in$(p$)
   Local s$
 
   con.out(p$)
   con.flush()
   con.lines = 0
 
-  ' If configured read input from the script
-  If script And S_READ Then
-    Line Input #3, s$
-    If s$ = "" Then
-      script = script And S_WRITE
-      Close #3
-    Else
-      con.out(s$) : con.endl()
-    EndIf
-  EndIf
+  Line Input #con.fd_in, s$
+  If con.fd_in > 0 Then con.out(s$) : con.endl()
+  con.x = 1
 
-  ' Otherwise read input from the console
-  If Not(script And S_READ) Then Line Input s$ : con.x = 1
-
-  ' If configured write input to the script
-  If (r = 1) And (script AND S_WRITE) And (s$ <> "") Then Print #2, s$
+  If con.echo And con.fd_out > 0 And s$ <> "" Then Print #con.fd_out, s$
 
   con.in$ = s$
 End Function
@@ -123,7 +109,7 @@ Sub con.endl()
 End Sub
 
 ' Echos the contents of a (hopefully) text file to the console.
-Sub con.echo(f$)
+Sub con.print_file(f$)
   Local s$
 
   Open f$ For Input As #1
@@ -133,4 +119,23 @@ Sub con.echo(f$)
     con.endl()
   Loop While Not Eof(#1)
   Close #1
+End Sub
+
+Sub con.close()
+  If con.fd_in <> 0 Then Close #con.fd_in
+  If con.fd_out <> 0 Then Close #con.fd_out
+  con.echo = 0
+End Sub
+
+Sub con.open_in(fd, f$)
+  If con.fd_in <> 0 Then Close #con.fd_in
+  Open f$ For Input As #fd
+  con.fd_in = fd
+End Sub
+
+Sub con.open_out(fd, f$)
+  If con.fd_out <> 0 Then Close #con.fd_out
+  Open f$ For Output As #fd
+  con.fd_out = fd
+  con.echo = 1
 End Sub

@@ -11,17 +11,22 @@ Option Default Integer
 #Include "file.inc"
 #Include "persist.inc"
 
+Dim COLOURS(6) = (RGB(Green), RGB(White), RGB(Cyan), RGB(Yellow), RGB(Magenta), RGB(Red), RGB(Blue))
+Dim ink = 0
+
 CON.WIDTH = 80
 
 Const STATE_CONTINUE = 0
-Const STATE_QUIT = 1
-Const STATE_RESTART = 2
+Const STATE_QUIT     = 1
+Const STATE_RESTART  = 2
 
 Const ACTION_PERFORMED = 3
-Const ACTION_UNKNOWN = 4
-Const ACTION_NOT_YET = 5
+Const ACTION_UNKNOWN   = 4
+Const ACTION_NOT_YET   = 5
 
-Dim SAVE_DIR$
+Const VERB_RECORD_ON  = -1
+Const VERB_RECORD_OFF = -2
+Const VERB_REPLAY_ON  = -3
 
 ' These global variables hold the current game state
 Dim lx ' light duration
@@ -36,35 +41,66 @@ Dim state
 ' TODO: This shouldn't be global
 Dim ip ' action parameter pointer
 
+Mode 2
+Colour COLOURS(ink)
 main("pirate")
+Pause 1000
 End
 
 Sub main(story$)
   Local s$
 
-  SAVE_DIR$ = FIL.PROG_DIR$ + "/save"
   dat.read(story$ + ".dat")
-  show_intro(story$ + ".title")
 
   Do
-    Cls
-    reset_state()
-    s$ = con.in$("Would you like to restore a saved game [y|N]? ")
-    If LCase$(s$) = "y" Then do_load()
-    describe_room()
-    game_loop()
+    show_intro(story$ + ".title")
+    If state = STATE_CONTINUE Then game_loop()
   Loop While state <> STATE_QUIT
 
   con.out("Goodbye!") : con.endl()
+  con.close()
 End Sub
 
 Sub show_intro(f$)
+  Local i, k$
+  Local sp$ = Space$(24)
+
   Cls
-  con.echo(f$)
-  con.out("   Scott Adams Adventure Interpreter for Colour Maximite 2") : con.endl()
-  con.out("                (c) Thomas Hugo Williams 2020") : con.endl()
+  con.lines = 0
+  con.print_file(f$)
+'  con.out("   Scott Adams Adventure Interpreter for Colour Maximite 2") : con.endl()
+'  con.out("                (c) Thomas Hugo Williams 2020") : con.endl()
   con.endl()
-  Local s$ = con.in$("                    Press any key to start ")
+  con.out(sp$ + "S  Start the game") : con.endl()
+  con.out(sp$ + "R  Restore a saved game") : con.endl()
+  con.out(sp$ + "C  Show credits") : con.endl()
+  con.out(sp$ + "I  Instructions on how to play") : con.endl()
+  con.out(sp$ + "T  Toggle display colours") : con.endl()
+  con.out(sp$ + "Q  Quit") : con.endl()
+  con.endl()
+
+  Do While Inkey$ <> "" : Loop
+  Do
+    k$ = LCase$(Inkey$)
+    Select Case k$
+      Case "s" : reset_state()
+      Case "r" : If Not do_restore() Then state = STATE_RESTART
+      Case "c" : show_credits() : state = STATE_RESTART
+      Case "i" : show_instructions() : state = STATE_RESTART
+      Case "t" :
+        ink = (ink + 1) Mod (Bound(COLOURS(), 1) + 1)
+        Colour COLOURS(ink)
+        state = STATE_RESTART
+      Case "q" : state = STATE_QUIT
+      Case Else : k$ = ""
+    End Select
+  Loop Until k$ <> ""
+End Sub
+
+Sub show_credits()
+End Sub
+
+Sub show_instructions()
 End Sub
 
 Sub reset_state()
@@ -79,6 +115,9 @@ End Sub
 
 Sub game_loop()
   Local noun, nstr$, verb
+
+  describe_room()
+
   Do
     do_actions() ' handle automatic actions
     prompt_for_input(verb, noun, nstr$)
@@ -98,6 +137,7 @@ Sub describe_room()
   EndIf
 
   Cls
+  con.lines = 0
 
   If Left$(rs$(r), 1) = "*" Then
     ' A leading asterisk means use the room description verbatim.
@@ -253,7 +293,7 @@ Sub go_direction(noun)
       Exit Sub
     EndIf
   EndIf
-  If Not l Then Cls
+'  If Not l Then Cls
   r = k
   describe_room()
 End Sub
@@ -410,8 +450,7 @@ Sub do_command(a, cmd)
     Case 63
       ' FINI
       ' Tell the player the game is over and ask if they want to play again.
-      con.out("The game is now over.") : con.endl()
-      Local s$ = con.in$("Would you like to play again ? ")
+      Local s$ = con.in$("The game is now over, would you like to play again ? ")
       If LCase$(Left$(s$, 1)) = "n" Then state = STATE_QUIT Else state = STATE_RESTART
 
     Case 64
@@ -466,11 +505,12 @@ Sub do_command(a, cmd)
     Case 70
       ' CLS
       Cls
+      con.lines = 0
 
     Case 71
       ' SAVEz
       ' This command saves the current game state to a file.
-      do_save()
+      x = do_save()
 
     Case 72
       ' EXx,x
@@ -512,10 +552,17 @@ Sub prompt_for_input(verb, noun, nstr$)
   Local s$
 
   Do
+    If con.count = 1 Then con.endl()
     s$ = con.in$("Tell me what to do ? ")
     parse(s$, verb, noun, nstr$)
-    If verb <> 0 Then Exit Do
-    con.out("You use word(s) I don't know!") : con.endl()
+
+    Select Case verb
+      Case 0               : con.out("You use word(s) I don't know!") : con.endl()
+      Case VERB_RECORD_ON  : con.endl() : record_on()
+      Case VERB_RECORD_OFF : record_off()
+      Case VERB_REPLAY_ON  : con.endl() : replay_on()
+      Case Else            : Exit Do
+    End Select
   Loop
 
 End Sub
@@ -523,17 +570,33 @@ End Sub
 Sub parse(s$, verb, noun, nstr$)
   Local p, vstr$
 
-  vstr$ = ""
-  nstr$ = ""
+  verb = 0 : noun = 0
 
   p = InStr(s$, " ")
   If p < 1 Then p = Len(s$) + 1
-  vstr$ = Left$(s$, p - 1)
+  vstr$ = LCase$(Left$(s$, p - 1))
   Do While Mid$(s$, p, 1) = " " : p = p + 1 : Loop
-  nstr$= Mid$(s$, p, Len(s$) - p + 1)
+  nstr$ = LCase$(Mid$(s$, p, Len(s$) - p + 1))
 
-  vstr$ = LCase$(Left$(vstr$, ln))
-  nstr$ = LCase$(Left$(nstr$, ln))
+  ' Intercept meta commands.
+  If vstr$ = "*record" Then
+    If nstr$ = "on" Or nstr$ = "" Then
+      verb = VERB_RECORD_ON
+    ElseIf nstr$ = "off" Then
+      verb = VERB_RECORD_OFF
+    EndIf
+  Else If vstr$ = "*replay" Then
+    ' Note that "*replay off" makes no sense,
+    ' replaying ends when the script being replayed ends.
+    If nstr$ = "on" Or nstr$ = "" Then
+      verb = VERB_REPLAY_ON
+    EndIf
+  End If
+
+  If verb <> 0 Then Exit Sub
+
+  vstr$ = Left$(vstr$, ln)
+  nstr$ = Left$(nstr$, ln)
 
   verb = lookup_word(vstr$, 0)
   noun = lookup_word(nstr$, 1)
