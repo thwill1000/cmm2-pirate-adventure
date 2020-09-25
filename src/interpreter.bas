@@ -24,9 +24,13 @@ Const ACTION_PERFORMED = 3
 Const ACTION_UNKNOWN   = 4
 Const ACTION_NOT_YET   = 5
 
+' Verb id's for meta commands.
 Const VERB_RECORD_ON  = -1
 Const VERB_RECORD_OFF = -2
 Const VERB_REPLAY_ON  = -3
+Const VERB_DUMP_STATE = -4
+Const VERB_DEBUG_ON   = -5
+Const VERB_DEBUG_OFF  = -6
 
 ' These global variables hold the current game state
 Dim lx ' light duration
@@ -37,6 +41,7 @@ Dim sf ' status flags
 ' but is declared by data.read()
 
 Dim state
+Dim debug
 
 ' TODO: This shouldn't be global
 Dim ip ' action parameter pointer
@@ -53,6 +58,7 @@ Sub main(story$)
   dat.read(story$ + ".dat")
 
   Do
+    state = STATE_CONTINUE
     show_intro(story$ + ".title")
     If state = STATE_CONTINUE Then game_loop()
   Loop While state <> STATE_QUIT
@@ -84,7 +90,7 @@ Sub show_intro(f$)
     k$ = LCase$(Inkey$)
     Select Case k$
       Case "s" : reset_state()
-      Case "r" : If Not do_restore() Then state = STATE_RESTART
+      Case "r" : If Not do_restore() Then Pause 2000 : state = STATE_RESTART
       Case "c" : show_credits() : state = STATE_RESTART
       Case "i" : show_instructions() : state = STATE_RESTART
       Case "t" :
@@ -121,7 +127,6 @@ Sub game_loop()
   Do
     do_actions() ' handle automatic actions
     prompt_for_input(verb, noun, nstr$)
-    con.endl()
     do_actions(verb, noun, nstr$) ' handle player actions
     If state = STATE_CONTINUE Then update_light()
   Loop While state = STATE_CONTINUE
@@ -132,6 +137,7 @@ Sub describe_room()
 
   ' Object 9 is the lit light source.
   If df And ia(9) <> -1 And ia(9) <> r Then
+    If debug Then con.out("[" + Str$(r) + "] ")
     con.out("I can't see, its too dark!") : con.endl()
     Exit Sub
   EndIf
@@ -139,6 +145,7 @@ Sub describe_room()
   Cls
   con.lines = 0
 
+  If debug Then con.out("[" + Str$(r) + "] ")
   If Left$(rs$(r), 1) = "*" Then
     ' A leading asterisk means use the room description verbatim.
     con.out(Mid$(rs$(r), 2)) : con.endl()
@@ -170,6 +177,7 @@ Sub print_object_list(rm, none$)
     If ia(i) = rm Then
       count = count + 1
       If count > 1 Then con.out(", ")
+      If debug Then con.out("[" + Str$(i) + "] ")
       p = InStr(ia_str$(i), "/")
       If p < 1 Then
         con.out(ia_str$(i))
@@ -367,6 +375,7 @@ Sub do_command(a, cmd)
 
     Case 1 To 51
       ' Display corresponding message.
+      If debug Then con.out("[" + Str$(cmd) + "] ")
       con.out(ms$(cmd)) : con.endl()
 
     Case 52
@@ -525,6 +534,7 @@ Sub do_command(a, cmd)
 
     Case 102 To 149
       ' Display corresponding message.
+      If debug Then con.out("[" + Str$(cmd - 50) + "] ")
       con.out(ms$(cmd - 50)) : con.endl()
 
     Case Else
@@ -551,20 +561,46 @@ End Function
 Sub prompt_for_input(verb, noun, nstr$)
   Local s$
 
-  Do
+  verb = 0
+  Do While verb <= 0
     If con.count = 1 Then con.endl()
     s$ = con.in$("Tell me what to do ? ")
     parse(s$, verb, noun, nstr$)
-
-    Select Case verb
-      Case 0               : con.out("You use word(s) I don't know!") : con.endl()
-      Case VERB_RECORD_ON  : con.endl() : record_on()
-      Case VERB_RECORD_OFF : record_off()
-      Case VERB_REPLAY_ON  : con.endl() : replay_on()
-      Case Else            : Exit Do
-    End Select
+    If verb < 0 Then
+      do_meta_command(verb)
+    ElseIf verb = 0 Then
+      con.out("You use word(s) I don't know!") : con.endl()
+    EndIf
   Loop
 
+End Sub
+
+Sub do_meta_command(verb)
+  Select Case verb
+    Case VERB_RECORD_ON  : con.endl() : record_on()
+    Case VERB_RECORD_OFF : record_off()
+    Case VERB_REPLAY_ON  : con.endl() : replay_on()
+    Case VERB_DUMP_STATE : con.endl() : print_state()
+    Case VERB_DEBUG_ON   : con.out("OK.") : con.endl() : debug = 1
+    Case VERB_DEBUG_OFF  : con.out("OK.") : con.endl() : debug = 0
+    Case Else            : Error "Unexpected meta command: " + Str$(verb)
+  End Select
+End Sub
+
+Sub print_state()
+  con.out("Current room:    " + Str$(r)) : con.endl()
+  con.out("Dark flag:       " + Str$(df)) : con.endl()
+  con.out("Remaining light: " + Str$(lx)) : con.endl()
+  con.out("Set flags:       ")
+  Local count, i
+  For i = 0 To 31
+    If sf And 1 << i Then
+      count = count + 1
+      If count > 1 Then con.out(", ")
+      con.out(Str$(i))
+    EndIf
+  Next i
+  con.endl()
 End Sub
 
 Sub parse(s$, verb, noun, nstr$)
@@ -578,28 +614,11 @@ Sub parse(s$, verb, noun, nstr$)
   Do While Mid$(s$, p, 1) = " " : p = p + 1 : Loop
   nstr$ = LCase$(Mid$(s$, p, Len(s$) - p + 1))
 
-  ' Intercept meta commands.
-  If vstr$ = "*record" Then
-    If nstr$ = "on" Or nstr$ = "" Then
-      verb = VERB_RECORD_ON
-    ElseIf nstr$ = "off" Then
-      verb = VERB_RECORD_OFF
-    EndIf
-  Else If vstr$ = "*replay" Then
-    ' Note that "*replay off" makes no sense,
-    ' replaying ends when the script being replayed ends.
-    If nstr$ = "on" Or nstr$ = "" Then
-      verb = VERB_REPLAY_ON
-    EndIf
-  End If
-
+  verb = lookup_meta_command(vstr$, nstr$)
   If verb <> 0 Then Exit Sub
 
-  vstr$ = Left$(vstr$, ln)
-  nstr$ = Left$(nstr$, ln)
-
-  verb = lookup_word(vstr$, 0)
-  noun = lookup_word(nstr$, 1)
+  verb = lookup_word(Left$(vstr$, ln), 0)
+  noun = lookup_word(Left$(nstr$, ln), 1)
 
   ' Hack to allow use of common abbreviations, and avoid typing 'go'.
   If verb = 0 Then
@@ -612,12 +631,38 @@ Sub parse(s$, verb, noun, nstr$)
       Case "d", "down"  : verb = 1 : noun = 6
       Case "i"          : verb = 25
     End Select
-  End If
+  EndIf
 
-  If noun <> 0 Then nstr$ = LCase$(nv_str$(noun, 1)) ' to use correct synonym
+  If noun <> 0 Then
+    nstr$ = LCase$(nv_str$(noun, 1)) ' to use correct synonym
+  Else
+    nstr$ = Left$(nstr$, ln)
+  EndIf
 
 '  Print "verb =" verb ", noun =" noun ", nstr$ = " nstr$
 End Sub
+
+Function lookup_meta_command(vstr$, nstr$)
+  Local verb
+
+  Select Case vstr$
+    Case "*debug"
+      If nstr$ = "on" Or nstr$ = "" Then verb = VERB_DEBUG_ON
+      If nstr$ = "off" Then verb = VERB_DEBUG_OFF
+    Case "*record"
+      If nstr$ = "on" Or nstr$ = "" Then verb = VERB_RECORD_ON
+      If nstr$ = "off" Then verb = VERB_RECORD_OFF
+    Case "*replay"
+      ' Note that "*replay off" makes no sense,
+      ' replaying ends when the script being replayed ends.
+      If nstr$ = "on" Or nstr$ = "" Then verb = VERB_REPLAY_ON
+    Case "*state"
+      If nstr$ = "" Then verb = VERB_DUMP_STATE
+  End Select
+
+  lookup_meta_command = verb
+End Function
+
 
 ' @param  word$  word to lookup
 ' @param  dict   dictionary to look in, 0 for verbs and 1 for nouns
@@ -671,7 +716,7 @@ Sub do_get(nstr$)
   Else If k = 0 Then
     con.out("It's beyond my power to do that.") : con.endl()
   Else
-    con.out("OK, ")
+    con.out("Taken.") : con.endl()
   End If
 End Sub
 
@@ -712,7 +757,7 @@ Sub do_drop(nstr$)
   Else If k = 0 Then
     con.out("It's beyond my power to do that.") : con.endl()
   Else
-    con.out("OK, ")
+    con.out("Dropped.") : con.endl()
   End If
 
 End Sub
