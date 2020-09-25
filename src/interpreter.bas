@@ -42,6 +42,7 @@ Dim sf ' status flags
 
 Dim state
 Dim debug
+Dim msg
 
 ' TODO: This shouldn't be global
 Dim ip ' action parameter pointer
@@ -61,6 +62,7 @@ Sub main(story$)
     state = STATE_CONTINUE
     show_intro(story$ + ".title")
     If state = STATE_CONTINUE Then game_loop()
+    con.close()
   Loop While state <> STATE_QUIT
 
   con.out("Goodbye!") : con.endl()
@@ -168,6 +170,8 @@ Sub describe_room()
 
   con.out("<" + String$(CON.WIDTH - 3, "-") + ">") : con.endl()
   con.endl()
+
+  msg = 1
 End Sub
 
 Sub print_object_list(rm, none$)
@@ -201,6 +205,7 @@ Sub do_actions(verb, noun, nstr$)
   EndIf
 
   result = ACTION_UNKNOWN
+  msg = 0
 
   For a = 0 to cl
     av = Int(ca(a, 0) / 150) ' action - verb
@@ -250,6 +255,7 @@ Sub do_actions(verb, noun, nstr$)
   Select Case result
     Case ACTION_UNKNOWN : con.out("I don't understand your command.") : con.endl()
     Case ACTION_NOT_YET : con.out("I can't do that yet.") : con.endl()
+    Case Else :           If Not msg Then con.out("OK.") : con.endl()
   End Select
 
 End Sub
@@ -288,16 +294,16 @@ End Sub
 Sub go_direction(noun)
   Local l = df
   If l Then l = df And ia(9) <> R and ia(9) <> - 1
-  If l Then con.out("Dangerous to move in the dark!") : con.endl()
-  If noun < 1 Then con.out("Give me a direction too.") : con.endl() : Exit Sub
+  If l Then print_response("Dangerous to move in the dark!")
+  If noun < 1 Then print_response("Give me a direction too.") : Exit Sub
   Local k = rm(r, noun - 1)
   If k < 1 Then
     If l Then
-      con.out("I fell down and broke my neck.") : con.endl()
+      print_response("I fell down and broke my neck.")
       k = rl
       df = 0
     Else
-      con.out("I can't go in that direction.") : con.endl()
+      print_response("I can't go in that direction.")
       Exit Sub
     EndIf
   EndIf
@@ -375,8 +381,7 @@ Sub do_command(a, cmd)
 
     Case 1 To 51
       ' Display corresponding message.
-      If debug Then con.out("[" + Str$(cmd) + "] ")
-      con.out(ms$(cmd)) : con.endl()
+      print_message(cmd)
 
     Case 52
       ' GETx
@@ -387,7 +392,7 @@ Sub do_command(a, cmd)
         If ia(i) = -1 Then x = x + 1
       Next i
       ' TODO: this should terminate pickup
-      If x > mx Then con.out("I'VE TOO MUCH TOO CARRY. TRY -TAKE INVENTORY-") : con.endl()
+      If x > mx Then print_response("I've too much to carry. Try 'Inventory'")
       p = get_parameter(a)
       ia(p) = -1
 
@@ -429,20 +434,20 @@ Sub do_command(a, cmd)
       ' SETz
       ' Set the Par #1 flag-bit.
       p = get_parameter(a)
-      sf = sf Or Int(0.5 + 2^p)
+      sf = sf Or 1 << p
 
     Case 60
       ' CLRz
       ' Clear the Par #1 flag-bit.
       p = get_parameter(a)
-      sf = sf And Not Int(0.5 + 2^p)
+      sf = (sf Or 1 << p) Xor 1 << p
 
     Case 61
       ' DEAD
       ' Tell the player they are dead,
       ' Goto the last room (usually some form of limbo),
       ' make it DAY and display the room.
-      con.out("I'M DEAD...") : con.endl()
+      print_response("I'm dead...")
       r = rl
       df = 0
       do_command(64)
@@ -481,6 +486,7 @@ Sub do_command(a, cmd)
       Next i
       con.out("I've stored " + Str$(x) + " treasures. On a scale of 0 to 100 that rates a ")
       con.out(Str$(Int(x/tt*100)) + ".") : con.endl()
+      msg = 1
       If x = tt Then
         con.out("Well done.") : con.endl()
         Goto 850
@@ -491,16 +497,17 @@ Sub do_command(a, cmd)
       ' Tells the player what objects they are carrying.
       con.out("I'm carrying: ")
       print_object_list(-1, "Nothing")
+      msg = 1
 
     Case 67
       ' SET0
       ' Sets the flag-bit numbered 0 (this may be convenient because no parameter is used).
-      sf = sf Or Int(0.5)
+      sf = sf Or 1
 
     Case 68
       ' CLR0
       ' Clears the flag-bit numbered 0 (this may be convenient because no parameter is used).
-      sf = sf And Not Int(0.5)
+      sf = (sf Or 1) Xor 1
 
     Case 69
       ' FILL
@@ -534,14 +541,24 @@ Sub do_command(a, cmd)
 
     Case 102 To 149
       ' Display corresponding message.
-      If debug Then con.out("[" + Str$(cmd - 50) + "] ")
-      con.out(ms$(cmd - 50)) : con.endl()
+      print_message(cmd - 50)
 
     Case Else
       Error "Unknown command: " + Str$(cmd)
 
   End Select
 
+End Sub
+
+Sub print_message(i)
+  If debug Then con.out("[" + Str$(i) + "] ")
+  con.out(ms$(i)) : con.endl()
+  msg = 1
+End Sub
+
+Sub print_response(s$)
+  con.out(s$) : con.endl()
+  msg = 1
 End Sub
 
 ' @param   a   current action index
@@ -712,12 +729,10 @@ Sub do_get(nstr$)
   Next i
 
   If k = 2 Then
-    con.out("I don't see it here.") : con.endl()
-  Else If k = 0 Then
-    con.out("It's beyond my power to do that.") : con.endl()
-  Else
-    con.out("Taken.") : con.endl()
-  End If
+    con.out("I don't see it here.") : con.endl() : msg = 1
+  ElseIf k = 0 Then
+    con.out("It's beyond my power to do that.") : con.endl() : msg = 1
+  EndIf
 End Sub
 
 ' Gets the noun for referring to the given object.
@@ -753,12 +768,10 @@ Sub do_drop(nstr$)
   Next i
 
   If k = 1 Then
-    con.out("I'm not carrying it!") : con.endl()
-  Else If k = 0 Then
-    con.out("It's beyond my power to do that.") : con.endl()
-  Else
-    con.out("Dropped.") : con.endl()
-  End If
+    con.out("I'm not carrying it!") : con.endl() : msg = 1
+  ElseIf k = 0 Then
+    con.out("It's beyond my power to do that.") : con.endl() : msg = 1
+  EndIf
 
 End Sub
 

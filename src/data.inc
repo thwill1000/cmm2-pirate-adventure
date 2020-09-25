@@ -44,10 +44,10 @@ Sub dat.read(f$)
   Next i
 
   ' Read rooms.
-  For i = 0 TO rl : INPUT #1, rm(i,0),rm(i,1),rm(i,2),rm(i,3),rm(i,4),rm(i,5),rs$(i) : Next i
+  For i = 0 TO rl : Input #1, rm(i,0),rm(i,1),rm(i,2),rm(i,3),rm(i,4),rm(i,5),rs$(i) : Next i
 
   ' Read messages.
-  For i = 0 TO ml : Input #1, ms$(i) : Next i
+  For i = 0 TO ml : Line Input #1, ms$(i) : Next i
 
   ' Read objects.
   For i = 0 TO il : Input #1, ia_str$(i),ia(i) : i2(i)=ia(i) : Next i

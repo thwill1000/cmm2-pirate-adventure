@@ -153,11 +153,15 @@ Sub record_on()
   con.out("Recording to '" + f$ + "' ...") : con.endl()
 
   con.open_out(2, f$)
+
+  Print #2, "# " Date$ " " Time$
+  Print #2, "# " s$
+
 End Sub
 
 ' Prompts the user to select a script slot.
 Function select_script()
-  Local i, f$, s$(3) Length 64
+  Local i, f$, s$
 
   fil.mkdir(SCRIPT_DIR$)
 
@@ -166,21 +170,19 @@ Function select_script()
     con.out("  [" + Format$(i, "%2g") + "] ")
     If fil.exists%(f$) Then
       Open f$ For Input As #1
-      Line Input #1, s$(0) ' header
-      Line Input #1, s$(1) ' version
-      Line Input #1, s$(2) ' date/time
-      Line Input #1, s$(3) ' game name
+      Line Input #1, s$ ' date/time
+      con.out(Mid$(s$, 3) + " - ")
+      Line Input #1, s$ ' script name
+      con.out(Mid$(s$, 3)) : con.endl()
       Close #1
-      ' TODO: verify header / version ?
-      con.out(s$(2) + " - " + s$(3)) : con.endl()
     Else
       con.out("Empty") : con.endl()
     End If
   Next i
 
   con.endl()
-  s$(0) = con.in$("Script slot ? ")
-  select_script = Val(s$(0))
+  s$ = con.in$("Script slot ? ")
+  select_script = Val(s$)
   If select_script < 1 Or select_script > 10 Then select_script = 0
 
 End Function
@@ -197,7 +199,7 @@ Sub record_off()
 End Sub
 
 Sub replay_on()
-  Local f$, script
+  Local f$, script, s$
 
   con.out("Select script slot to replay:") : con.endl()
   con.endl()
@@ -211,5 +213,9 @@ Sub replay_on()
   con.out("Replaying from '" + f$ + "' ...") : con.endl()
 
   con.open_in(3, f$)
+
+  ' Discard the first two lines which should contain the timestamp and script name.
+  Line Input #3, s$
+  Line Input #3, s$
 End Sub
 

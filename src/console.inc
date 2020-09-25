@@ -28,6 +28,7 @@ Function con.in$(p$)
   Line Input #con.fd_in, s$
   If con.fd_in > 0 Then con.out(s$) : con.endl()
   con.x = 1
+  If con.fd_in > 0 And Eof(#con.fd_in) Then Close #con.fd_in : con.fd_in = 0
 
   If con.echo And con.fd_out > 0 And s$ <> "" Then Print #con.fd_out, s$
 
@@ -124,6 +125,8 @@ End Sub
 Sub con.close()
   If con.fd_in <> 0 Then Close #con.fd_in
   If con.fd_out <> 0 Then Close #con.fd_out
+  con.fd_in = 0
+  con.fd_out = 0
   con.echo = 0
 End Sub
 
