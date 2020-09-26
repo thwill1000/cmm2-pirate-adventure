@@ -42,7 +42,6 @@ Dim sf ' status flags
 
 Dim state
 Dim debug
-Dim msg
 
 ' TODO: This shouldn't be global
 Dim ip ' action parameter pointer
@@ -171,7 +170,6 @@ Sub describe_room()
   con.println("<" + String$(CON.WIDTH - 3, "-") + ">")
   con.println()
 
-  msg = 1
 End Sub
 
 Sub print_object_list(rm, none$)
@@ -205,7 +203,6 @@ Sub do_actions(verb, noun, nstr$)
   EndIf
 
   result = ACTION_UNKNOWN
-  msg = 0
 
   For a = 0 to cl
     av = Int(ca(a, 0) / 150) ' action - verb
@@ -255,7 +252,7 @@ Sub do_actions(verb, noun, nstr$)
   Select Case result
     Case ACTION_UNKNOWN : con.println("I don't understand your command.")
     Case ACTION_NOT_YET : con.println("I can't do that yet.")
-    Case Else :           If Not msg Then con.println("OK.")
+    Case Else :           con.println("OK.")
   End Select
 
 End Sub
@@ -294,16 +291,16 @@ End Sub
 Sub go_direction(noun)
   Local l = df
   If l Then l = df And ia(9) <> R and ia(9) <> - 1
-  If l Then print_response("Dangerous to move in the dark!")
-  If noun < 1 Then print_response("Give me a direction too.") : Exit Sub
+  If l Then con.println("Dangerous to move in the dark!")
+  If noun < 1 Then con.println("Give me a direction too.") : Exit Sub
   Local k = rm(r, noun - 1)
   If k < 1 Then
     If l Then
-      print_response("I fell down and broke my neck.")
+      con.println("I fell down and broke my neck.")
       k = rl
       df = 0
     Else
-      print_response("I can't go in that direction.")
+      con.println("I can't go in that direction.")
       Exit Sub
     EndIf
   EndIf
@@ -381,7 +378,8 @@ Sub do_command(a, cmd)
 
     Case 1 To 51
       ' Display corresponding message.
-      print_message(cmd)
+      If debug Then con.print("[" + Str$(cmd) + "] ")
+      con.println(ms$(cmd))
 
     Case 52
       ' GETx
@@ -392,7 +390,7 @@ Sub do_command(a, cmd)
         If ia(i) = -1 Then x = x + 1
       Next i
       ' TODO: this should terminate pickup
-      If x > mx Then print_response("I've too much to carry. Try 'Inventory'")
+      If x > mx Then con.println("I've too much to carry. Try 'Inventory'")
       p = get_parameter(a)
       ia(p) = -1
 
@@ -447,7 +445,7 @@ Sub do_command(a, cmd)
       ' Tell the player they are dead,
       ' Goto the last room (usually some form of limbo),
       ' make it DAY and display the room.
-      print_response("I'm dead...")
+      con.println("I'm dead...")
       r = rl
       df = 0
       do_command(64)
@@ -486,7 +484,6 @@ Sub do_command(a, cmd)
       Next i
       con.print("I've stored " + Str$(x) + " treasures. On a scale of 0 to 100 that rates a ")
       con.println(Str$(Int(x/tt*100)) + ".")
-      msg = 1
       If x = tt Then
         con.println("Well done.")
         Goto 850 ' TODO
@@ -497,7 +494,6 @@ Sub do_command(a, cmd)
       ' Tells the player what objects they are carrying.
       con.print("I'm carrying: ")
       print_object_list(-1, "Nothing")
-      msg = 1
 
     Case 67
       ' SET0
@@ -541,24 +537,14 @@ Sub do_command(a, cmd)
 
     Case 102 To 149
       ' Display corresponding message.
-      print_message(cmd - 50)
+      If debug Then con.print("[" + Str$(cmd - 50) + "] ")
+      con.println(ms$(cmd - 50))
 
     Case Else
       Error "Unknown command: " + Str$(cmd)
 
   End Select
 
-End Sub
-
-Sub print_message(i)
-  If debug Then con.print("[" + Str$(i) + "] ")
-  con.println(ms$(i))
-  msg = 1
-End Sub
-
-Sub print_response(s$)
-  con.println(s$)
-  msg = 1
 End Sub
 
 ' @param   a   current action index
@@ -729,9 +715,9 @@ Sub do_get(nstr$)
   Next i
 
   If k = 2 Then
-    con.println("I don't see it here.") : msg = 1
+    con.println("I don't see it here.")
   ElseIf k = 0 Then
-    con.println("It's beyond my power to do that.") : msg = 1
+    con.println("It's beyond my power to do that.")
   EndIf
 End Sub
 
@@ -768,9 +754,9 @@ Sub do_drop(nstr$)
   Next i
 
   If k = 1 Then
-    con.println("I'm not carrying it!") : msg = 1
+    con.println("I'm not carrying it!")
   ElseIf k = 0 Then
-    con.println("It's beyond my power to do that.") : msg = 1
+    con.println("It's beyond my power to do that.")
   EndIf
 
 End Sub
