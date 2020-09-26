@@ -15,12 +15,12 @@ Function do_save()
   If game <> 0 Then f$ = save_file$(game)
 
   If game <> 0 And fil.exists%(f$) Then
-    s$ = con.in$("Overwrite game " + Str$(game) + " [y|N]? ")
+    s$ = prompt$("Overwrite game " + Str$(game) + " [y|N]? ")
     If LCase$(s$) <> "y" Then game = 0
   EndIf
 
   If game <> 0 Then
-    s$ = con.in$("Saved game name ? ")
+    s$ = prompt$("Saved game name ? ")
     If s$ = "" Then game = 0
   EndIf
 
@@ -64,9 +64,11 @@ Function do_restore()
   game = select_game()
   If game <> 0 Then f$ = save_file$(game)
 
-  If game <> 0 And Not fil.exists%(f$) Then game = 0
+  If game <> 0 Then
+    If Not fil.exists%(f$) Then game = 0
+  EndIf
 
-  If game = 0 Then con.println("Cancelled.") Exit Function
+  If game = 0 Then con.println("Cancelled.") : Exit Function
 
   Open f$ For Input As #1
 
@@ -124,7 +126,7 @@ Function select_game()
   Next i
 
   con.println()
-  s$(0) = con.in$("Saved game slot ? ")
+  s$(0) = prompt$("Saved game slot ? ")
   select_game = Val(s$(0))
   If select_game < 1 Or select_game > 10 Then select_game = 0
 
@@ -139,12 +141,12 @@ Sub record_on()
   If script <> 0 Then f$ = script_file$(script)
 
   If script <> 0 And fil.exists%(f$) Then
-    s$ = con.in$("Overwrite script " + Str$(script) + " [y|N]? ")
+    s$ = prompt$("Overwrite script " + Str$(script) + " [y|N]? ")
     If LCase$(s$) <> "y" Then script = 0
   EndIf
 
   If script <> 0 Then
-    s$ = con.in$("Script name ? ")
+    s$ = prompt$("Script name ? ")
     If s$ = "" Then script = 0
   EndIf
 
@@ -181,7 +183,7 @@ Function select_script()
   Next i
 
   con.println()
-  s$ = con.in$("Script slot ? ")
+  s$ = prompt$("Script slot ? ")
   select_script = Val(s$)
   If select_script < 1 Or select_script > 10 Then select_script = 0
 
@@ -206,7 +208,9 @@ Sub replay_on()
   script = select_script()
   If script <> 0 Then f$ = script_file$(script)
 
-  If script <> 0 And Not fil.exists%(f$) Then script = 0
+  If script <> 0 Then
+    If Not fil.exists%(f$) Then script = 0
+  EndIf
 
   If script = 0 Then con.println("Cancelled.") : Exit Sub
 

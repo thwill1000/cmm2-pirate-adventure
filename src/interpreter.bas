@@ -11,9 +11,6 @@ Option Default Integer
 #Include "file.inc"
 #Include "persist.inc"
 
-Dim COLOURS(6) = (RGB(Green), RGB(White), RGB(Cyan), RGB(Yellow), RGB(Magenta), RGB(Red), RGB(Blue))
-Dim ink = 0
-
 CON.WIDTH = 80
 
 Const STATE_CONTINUE = 0
@@ -47,7 +44,6 @@ Dim debug
 Dim ip ' action parameter pointer
 
 Mode 2
-Colour COLOURS(ink)
 main("pirate")
 Pause 1000
 End
@@ -74,15 +70,16 @@ Sub show_intro(f$)
 
   Cls
   con.lines = 0
+  Colour RGB(White)
   con.print_file(f$)
 '  con.println("   Scott Adams Adventure Interpreter for Colour Maximite 2")
 '  con.println("                (c) Thomas Hugo Williams 2020")
+  Colour RGB(Green)
   con.println()
   con.println(sp$ + "S  Start the game")
   con.println(sp$ + "R  Restore a saved game")
   con.println(sp$ + "C  Show credits")
   con.println(sp$ + "I  Instructions on how to play")
-  con.println(sp$ + "T  Toggle display colours")
   con.println(sp$ + "Q  Quit")
   con.println()
 
@@ -94,10 +91,6 @@ Sub show_intro(f$)
       Case "r" : If Not do_restore() Then Pause 2000 : state = STATE_RESTART
       Case "c" : show_credits() : state = STATE_RESTART
       Case "i" : show_instructions() : state = STATE_RESTART
-      Case "t" :
-        ink = (ink + 1) Mod (Bound(COLOURS(), 1) + 1)
-        Colour COLOURS(ink)
-        state = STATE_RESTART
       Case "q" : state = STATE_QUIT
       Case Else : k$ = ""
     End Select
@@ -128,7 +121,7 @@ Sub game_loop()
 
   Do
     do_actions() ' handle automatic actions
-    prompt_for_input(verb, noun, nstr$)
+    prompt_for_command(verb, noun, nstr$)
     do_actions(verb, noun, nstr$) ' handle player actions
     If state = STATE_CONTINUE Then update_light()
   Loop While state = STATE_CONTINUE
@@ -177,7 +170,7 @@ Sub describe_room()
   con.println("<" + String$(CON.WIDTH - 2, "-") + ">")
   con.println()
 
-  Colour COLOURS(ink)
+  Colour RGB(Green)
 
 End Sub
 
@@ -470,7 +463,7 @@ Sub do_command(a, cmd)
     Case 63
       ' FINI
       ' Tell the player the game is over and ask if they want to play again.
-      Local s$ = con.in$("The game is now over, would you like to play again ? ")
+      Local s$ = prompt$("The game is now over, would you like to play again ? ")
       If LCase$(Left$(s$, 1)) = "n" Then state = STATE_QUIT Else state = STATE_RESTART
 
     Case 64
@@ -494,7 +487,7 @@ Sub do_command(a, cmd)
       con.println(Str$(Int(x/tt*100)) + ".")
       If x = tt Then
         con.println("Well done.")
-        Goto 850 ' TODO
+        do_command(a, 63)
       EndIf
 
     Case 66
@@ -568,13 +561,13 @@ Function get_parameter(a)
  get_parameter = value
 End Function
 
-Sub prompt_for_input(verb, noun, nstr$)
+Sub prompt_for_command(verb, noun, nstr$)
   Local s$
 
   verb = 0
   Do While verb <= 0
     If con.count = 1 Then con.println()
-    s$ = con.in$("Tell me what to do ? ")
+    s$ = prompt$("Tell me what to do ? ")
     parse(s$, verb, noun, nstr$)
     If verb < 0 Then
       do_meta_command(verb)
@@ -584,6 +577,13 @@ Sub prompt_for_input(verb, noun, nstr$)
   Loop
 
 End Sub
+
+Function prompt$(s$)
+  con.print(s$)
+  Colour RGB(White)
+  prompt$ = con.in$()
+  Colour RGB(Green)
+End Function
 
 Sub do_meta_command(verb)
   Select Case verb

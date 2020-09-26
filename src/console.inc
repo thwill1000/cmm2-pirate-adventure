@@ -22,10 +22,10 @@ Function con.in$(p$, no_echo)
 
   con.print(p$)
   con.flush()
-  con.lines = 0
 
   Line Input #con.fd_in, s$
   If con.fd_in > 0 Then con.println(s$)
+  con.lines = 0
   con.x = 1
   If con.fd_in > 0 Then
     If Eof(#con.fd_in) Then Close #con.fd_in : con.fd_in = 0
