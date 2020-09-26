@@ -394,16 +394,13 @@ Sub do_command(a, cmd)
       ' GETx
       ' Pick up the Par #1 object unless player already carrying the limit.
       ' The object may be in this room, or in any other room.
-      x = 0
-      For i = 1 To il
-        If ia(i) = -1 Then x = x + 1
-      Next i
-      ' TODO: this should terminate pickup
-      If x > mx Then
+      p = get_parameter(a)
+      For i = 1 To il : If ia(i) = -1 Then x = x + 1 : Next i
+      If x <= mx Then
+        ia(p) = -1
+      Else
         con.println("I've too much to carry. Try " + Chr$(34) + "Inventory" + Chr$(34) + ".")
       EndIf
-      p = get_parameter(a)
-      ia(p) = -1
 
     Case 53
       ' DROPx
