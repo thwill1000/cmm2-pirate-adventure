@@ -123,6 +123,7 @@ End Sub
 Sub game_loop()
   Local noun, nstr$, verb
 
+  Cls
   describe_room()
 
   Do
@@ -143,8 +144,11 @@ Sub describe_room()
     Exit Sub
   EndIf
 
-  Cls
-  con.lines = 0
+  Colour RGB(White)
+
+  If Mm.Info(VPOS) > 0 Then con.println()
+'  Cls
+'  con.lines = 0
 
   If debug Then con.print("[" + Str$(r) + "] ")
   If Left$(rs$(r), 1) = "*" Then
@@ -167,8 +171,10 @@ Sub describe_room()
   con.print("Visible items: ")
   print_object_list(r, "None")
 
-  con.println("<" + String$(CON.WIDTH - 3, "-") + ">")
+  con.println("<" + String$(CON.WIDTH - 2, "-") + ">")
   con.println()
+
+  Colour COLOURS(ink)
 
 End Sub
 
@@ -252,7 +258,7 @@ Sub do_actions(verb, noun, nstr$)
   Select Case result
     Case ACTION_UNKNOWN : con.println("I don't understand your command.")
     Case ACTION_NOT_YET : con.println("I can't do that yet.")
-    Case Else :           con.println("OK.")
+    Case Else :           If con.lines = 0 Then con.println("OK.")
   End Select
 
 End Sub
@@ -448,7 +454,7 @@ Sub do_command(a, cmd)
       con.println("I'm dead...")
       r = rl
       df = 0
-      do_command(64)
+      describe_room()
 
     Case 62
       ' x->y
@@ -516,8 +522,7 @@ Sub do_command(a, cmd)
 
     Case 70
       ' CLS
-      Cls
-      con.lines = 0
+      ' As far as I can tell a CLS is always followed by a DspRM thus making it superfluous.
 
     Case 71
       ' SAVEz

@@ -78,7 +78,7 @@ Sub con.flush()
       con.lines = 0
     EndIf
 
-    If con.x + Len(con.buf$) > CON.WIDTH Then
+    If con.x + Len(con.buf$) > CON.WIDTH + 1 Then
       Print
       con.lines = con.lines + 1
       con.x = 1
