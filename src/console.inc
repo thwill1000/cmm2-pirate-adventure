@@ -10,7 +10,6 @@ Dim con.x = 1  ' current horizontal cursor position, indexed from 1
 Dim con.spin   ' is the spinning cursor currently displayed?
 Dim con.fd_in  ' file descriptor to read input from
 Dim con.fd_out ' file descriptor to echo input to
-Dim con.echo   ' if 1 then echo non-empty input to 'con.fd_out'
 
 '!comment_if INLINE_CONSTANTS
 Dim CON.HEIGHT = 50
@@ -18,7 +17,7 @@ Dim CON.WIDTH = 100
 '!endif
 
 ' @param  p$  prompt
-Function con.in$(p$)
+Function con.in$(p$, no_echo)
   Local s$
 
   con.print(p$)
@@ -28,9 +27,15 @@ Function con.in$(p$)
   Line Input #con.fd_in, s$
   If con.fd_in > 0 Then con.println(s$)
   con.x = 1
-  If con.fd_in > 0 And Eof(#con.fd_in) Then Close #con.fd_in : con.fd_in = 0
+  If con.fd_in > 0 Then
+    If Eof(#con.fd_in) Then Close #con.fd_in : con.fd_in = 0
+  EndIf
 
-  If con.echo And con.fd_out > 0 And s$ <> "" Then Print #con.fd_out, s$
+  If Not no_echo Then
+    If con.fd_out > 0 Then
+      If s$ <> "" Then Print #con.fd_out, s$
+    EndIf
+  EndIf
 
   con.in$ = s$
 End Function
@@ -131,7 +136,6 @@ Sub con.close()
   If con.fd_out <> 0 Then Close #con.fd_out
   con.fd_in = 0
   con.fd_out = 0
-  con.echo = 0
 End Sub
 
 Sub con.open_in(fd, f$)
@@ -144,5 +148,4 @@ Sub con.open_out(fd, f$)
   If con.fd_out <> 0 Then Close #con.fd_out
   Open f$ For Output As #fd
   con.fd_out = fd
-  con.echo = 1
 End Sub
