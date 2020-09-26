@@ -161,12 +161,15 @@ Sub describe_room()
   con.print("Obvious exits: ")
   For i = 0 To 5
     If rm(r, i) <> 0 Then
-      con.print(nv_str$(i + 1, 1) + " ")
+      ' Use sentence case for directions.
       count = count + 1
+      If count > 1 Then con.print(", ")
+      con.print(UCase$(Left$(nv_str$(i + 1, 1), 1)))
+      con.print(LCase$(Mid$(nv_str$(i + 1, 1), 2)))
     EndIf
   Next i
   If count = 0 Then con.print("None")
-  con.println()
+  con.println(".")
 
   con.print("Visible items: ")
   print_object_list(r, "None")
@@ -196,7 +199,7 @@ Sub print_object_list(rm, none$)
   Next i
 
   If count = 0 Then con.print(none$)
-  con.println()
+  con.println(".")
 End Sub
 
 Sub do_actions(verb, noun, nstr$)
@@ -396,7 +399,9 @@ Sub do_command(a, cmd)
         If ia(i) = -1 Then x = x + 1
       Next i
       ' TODO: this should terminate pickup
-      If x > mx Then con.println("I've too much to carry. Try 'Inventory'")
+      If x > mx Then
+        con.println("I've too much to carry. Try " + Chr$(34) + "Inventory" + Chr$(34) + ".")
+      EndIf
       p = get_parameter(a)
       ia(p) = -1
 
@@ -647,7 +652,6 @@ Sub parse(s$, verb, noun, nstr$)
     nstr$ = Left$(nstr$, ln)
   EndIf
 
-'  Print "verb =" verb ", noun =" noun ", nstr$ = " nstr$
 End Sub
 
 Function lookup_meta_command(vstr$, nstr$)

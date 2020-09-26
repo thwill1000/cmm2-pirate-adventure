@@ -88,31 +88,31 @@ HAM,NAI,BOA,*SHI,SHE,CRA,WAT,*SAL,LAG,*TID
 SET,CAS,DIG,BUR,FIN,JUM,EMP,WEI,,
 PIT,SHO,*BEA,MAP,PAC,BON,HOL,SAN,BOX,SNE
  0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0,*I'm in a flat in London
- 0, 0, 0, 0, 0, 1,*I'm in an alcove
- 0, 0, 4, 2, 0, 0,secret passageway
- 0, 0, 0, 3, 0, 0,musty attic
- 0, 0, 0, 0, 0, 0,*I'm outside an open window on a ledge on the side of a very tall building
- 0, 0, 8, 0, 0, 0,*I'm on a sandy beach on a tropical isle
- 0, 12, 13, 14, 0, 11,maze of caves
- 0, 0, 14, 6, 0, 0,meadow
- 0, 0, 0, 8, 0, 0,grass shack
- 10, 24, 10, 10, 0, 0,*I'm in the ocean
- 0, 0, 0, 0, 7, 0,pit
- 7, 0, 14, 13, 0, 0,maze of caves
- 7, 14, 12, 19, 0, 0,maze of caves
- 0, 0, 0, 8, 0, 0,*I'm at the foot of a cave ridden hill. A path leads to the top
- 17, 0, 0, 0, 0, 0,Tool shed
- 0, 0, 17, 0, 0, 0,Long hallway
- 0, 0, 0, 16, 0, 0,Large cavern
- 0, 0, 0, 0, 0, 14,*I'm on top of a hill. Below is Pirate's Island. Across the sea off in the distance I can see *TREASURE* Island
- 0, 14, 14, 13, 0, 0,maze of caves
- 0, 0, 0, 0, 0, 0,*I'm aboard a pirate ship anchored off shore
- 0, 22, 0, 0, 0, 0,*I'm on the beach at Treasure Island
- 21, 0, 23, 0, 0, 0,Spooky old graveyard filled with piles of empty and broken rum bottles
- 0, 0, 0, 22, 0, 0,Large barren field
- 10, 6, 6, 6, 0, 0,Shallow lagoon. To the north is the ocean
- 0, 0, 0, 23, 0, 0,Sacked and deserted monastery
+ 0, 0, 0, 0, 0, 0,*I'm in a flat in London.
+ 0, 0, 0, 0, 0, 1,*I'm in an alcove.
+ 0, 0, 4, 2, 0, 0,secret passageway.
+ 0, 0, 0, 3, 0, 0,musty attic.
+ 0, 0, 0, 0, 0, 0,*I'm outside an open window on a ledge on the side of a very tall building.
+ 0, 0, 8, 0, 0, 0,*I'm on a sandy beach on a tropical isle.
+ 0, 12, 13, 14, 0, 11,maze of caves.
+ 0, 0, 14, 6, 0, 0,meadow.
+ 0, 0, 0, 8, 0, 0,grass shack.
+ 10, 24, 10, 10, 0, 0,*I'm in the ocean.
+ 0, 0, 0, 0, 7, 0,pit.
+ 7, 0, 14, 13, 0, 0,maze of caves.
+ 7, 14, 12, 19, 0, 0,maze of caves.
+ 0, 0, 0, 8, 0, 0,*I'm at the foot of a cave ridden hill. A path leads to the top.
+ 17, 0, 0, 0, 0, 0,Tool shed.
+ 0, 0, 17, 0, 0, 0,Long hallway.
+ 0, 0, 0, 16, 0, 0,Large cavern.
+ 0, 0, 0, 0, 0, 14,*I'm on top of a hill. Below is Pirate's Island. Across the sea off in the distance I can see *TREASURE* Island.
+ 0, 14, 14, 13, 0, 0,maze of caves.
+ 0, 0, 0, 0, 0, 0,*I'm aboard a pirate ship anchored off shore.
+ 0, 22, 0, 0, 0, 0,*I'm on the beach at Treasure Island.
+ 21, 0, 23, 0, 0, 0,Spooky old graveyard filled with piles of empty and broken rum bottles.
+ 0, 0, 0, 22, 0, 0,Large barren field.
+ 10, 6, 6, 6, 0, 0,Shallow lagoon. To the north is the ocean.
+ 0, 0, 0, 23, 0, 0,Sacked and deserted monastery.
  0, 0, 0, 0, 0, 0,
  0, 0, 0, 0, 0, 0,
  0, 0, 0, 0, 0, 0,
@@ -120,79 +120,79 @@ PIT,SHO,*BEA,MAP,PAC,BON,HOL,SAN,BOX,SNE
  0, 0, 0, 0, 0, 0,
  0, 0, 0, 0, 0, 0,
  0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0,*Welcome to Never Never Land
+ 0, 0, 0, 0, 0, 0,*Welcome to Never Never Land.
 
-There's a strange sound
+There's a strange sound.
 The name of the book is "Treasure Island". There's a word engraved in the flyleaf: "Yoho" and a message: "Long John Silver left two treasures on Treasure Island!"
-Nothing happens
-There's something there alright. Maybe I should
-That's not very safe
-You may need magic here
+Nothing happens.
+There's something there alright. Maybe I should.
+That's not very safe.
+You may need magic here.
 Everything spins around and suddenly you are elsewhere...
-The torch is lit
-I was wrong. I guess it's not a mongoose because the snakes bit it
-I'm snake bit
+The torch is lit.
+I was wrong. I guess it's not a mongoose because the snakes bit it.
+I'm snake bit.
 The parrot attacks the snakes and drives them off.
-The pirate won't let me
-It's locked
-It's open
-There are a set of plans in it
-Not whilst I'm carrying it
-The crocodiles stop me
-Sorry, I can't
+The pirate won't let me.
+It's locked.
+It's open.
+There are a set of plans in it.
+Not whilst I'm carrying it.
+The crocodiles stop me.
+Sorry, I can't.
 Wrong game you silly goose!
-I don't have it
-The pirate grabs the rum and scuttles off chortling
-...I think it's me. Hee Hee
-It's nailed to the floor
-"Magic Word" Ho and a ... (Work on it. You'll get it)
+I don't have it.
+The pirate grabs the rum and scuttles off chortling.
+...I think it's me. Hee Hee.
+It's nailed to the floor.
+"Magic Word" Ho and a ... (Work on it. You'll get it.)
 No. Something is missing!
 It was a tight squeeze!
-Something won't fit
-Since nothing is happening
+Something won't fit.
+Since nothing is happening.
 I slipped and fell...
-Something falls out
-They're plans to build "Jolly Roger" (a pirate ship!) You'll need hammer, nails, lumber, anchor, sails and a keel
-I've no container
-It soaks into the ground
-It's too dry. The fish vanish
-The pirate awakens and says "Aye Matey, we be casting off soon." He then vanishes
+Something falls out.
+They're plans to build "Jolly Roger" (a pirate ship!) You'll need hammer, nails, lumber, anchor, sails and a keel.
+I've no container.
+It soaks into the ground.
+It's too dry. The fish vanish.
+The pirate awakens and says "Aye Matey, we be casting off soon." He then vanishes.
 What a waste...
-I've no crew
+I've no crew.
 The pirate says "Aye Matey, we be needing a map first."
 After a month at sea we set anchor off of a sandy beach. All ashore who's going ashore...
-Try "Weigh Anchor"
-There's a map in it
-ITS A MAP TO TREASURE ISLAND. AT THE BOTTOM IT SAYS -30 PACES AND THEN DIG!-
-* Welcome to "Pirate Adventure" by Scott & Alexis Adams *
-It's empty
+Try "Weigh Anchor".
+There's a map in it.
+It's a map to Treasure Island. At the bottom it says "30 paces and then dig!"
+* Welcome to "Pirate Adventure" by Scott & Alexis Adams. *
+It's empty.
 I've no plans!
 Open it?
 Go there?
 I found something!
-I didn't find anything
-I don't see it here
-OK, I've walked off 30 paces
+I didn't find anything.
+I don't see it here.
+OK, I've walked off 30 paces.
 Congratulations !!! But you adventure is not over yet...
-Reading expands the mind
-The parrot crys
-"Check the bag Matey"
-"Check the chest Matey"
+Reading expands the mind.
+The parrot crys.
+"Check the bag Matey."
+"Check the chest Matey."
 From the other side!
 Open the book!
 There are multiple exits here!
-The crocodiles eat the fish and leave
+The crocodiles eat the fish and leave.
 I'm underwater. I can't swim. Blub blub...
-"Pieces of Eight"
-It's stuck in the sand
-Use one word
-The pirate says "Aye Matey, we be waiting for the tide to come in""
-The tide is out
-The tide is coming in
-About twenty pounds. Try "Set Sail"
-"Tides a changing Matey"
-Note here: "I be liking parrots. They be smart Matey"
-The pirate follows you ashore as if he is waiting for something
+"Pieces of Eight."
+It's stuck in the sand.
+Use one word.
+The pirate says "Aye Matey, we be waiting for the tide to come in."
+The tide is out.
+The tide is coming in.
+About twenty pounds. Try "Set Sail".
+"Tides a changing Matey."
+Note here: "I be liking parrots. They be smart Matey."
+The pirate follows you ashore as if he is waiting for something.
 Flight of stairs, 1
 Open window, 2
 Books in a bookcase, 2
@@ -204,7 +204,7 @@ Empty bottle/BOT/, 0
 Unlit torch/TOR/, 4
 Lit torch/TOR/, 0
 Matches/MAT/, 0
-Small ship's keel an mast, 6
+Small ship's keel and mast, 6
 Wicked looking pirate, 9
 Treasure chest/CHE/, 9
 Mongoose/MON/, 8

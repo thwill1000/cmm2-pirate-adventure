@@ -24,7 +24,7 @@ Function do_save()
     If s$ = "" Then game = 0
   EndIf
 
-  If game = 0 Then con.println("Cancelled") Exit Function
+  If game = 0 Then con.println("Cancelled.") Exit Function
 
   con.println("Saving '" + f$ + "' ...")
 
@@ -66,7 +66,7 @@ Function do_restore()
 
   If game <> 0 And Not fil.exists%(f$) Then game = 0
 
-  If game = 0 Then con.println("Cancelled") Exit Function
+  If game = 0 Then con.println("Cancelled.") Exit Function
 
   Open f$ For Input As #1
 
@@ -148,7 +148,7 @@ Sub record_on()
     If s$ = "" Then script = 0
   EndIf
 
-  If script = 0 Then con.println("Cancelled") : Exit Sub
+  If script = 0 Then con.println("Cancelled.") : Exit Sub
 
   con.println("Recording to '" + f$ + "' ...")
 
@@ -208,7 +208,7 @@ Sub replay_on()
 
   If script <> 0 And Not fil.exists%(f$) Then script = 0
 
-  If script = 0 Then con.println("Cancelled") : Exit Sub
+  If script = 0 Then con.println("Cancelled.") : Exit Sub
 
   con.println("Replaying from '" + f$ + "' ...")
 
