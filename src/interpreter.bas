@@ -216,7 +216,7 @@ Sub do_actions(verb, noun, nstr$)
       ' Automatic action, 'an' is the probability
       ' TODO: am I correctly generating numbers in range 1..100 ?
       process_action = (1 + 100 * Rnd()) <= an
-    Else If av = verb And (an = noun Or an = 0) Then
+    ElseIf av = verb And (an = noun Or an = 0) Then
       ' Verb and noun match, or action noun is 'ANY'
       process_action = 1
     Else
@@ -243,11 +243,11 @@ Sub do_actions(verb, noun, nstr$)
     If verb = 10 Then
       do_get(nstr$)
       result = ACTION_PERFORMED
-    Else If verb = 18 Then
+    ElseIf verb = 18 Then
       do_drop(nstr$)
       result = ACTION_PERFORMED
-    End If
-  End If
+    EndIf
+  EndIf
 
   Select Case result
     Case ACTION_UNKNOWN : con.println("I don't understand your command.")
@@ -710,8 +710,8 @@ Sub do_get(nstr$)
         Exit For
       Else
         k = 2
-      End If
-    End If
+      EndIf
+    EndIf
   Next i
 
   If k = 2 Then
@@ -730,7 +730,7 @@ Function obj_noun$(i)
     en = InStr(st + 1, ia_str$(i), "/")
     If en < st + 1 Then Error "Missing trailing '/'"
     obj_noun$ = Mid$(ia_str$(i), st + 1, en - st - 1)
-  End If
+  EndIf
 
   If Len(obj_noun$) > ln Then Error "Object noun too long: " + obj_noun$
 End Function
@@ -749,8 +749,8 @@ Sub do_drop(nstr$)
         Exit For
       Else
         k = 1
-      End If
-    End If
+      EndIf
+    EndIf
   Next i
 
   If k = 1 Then

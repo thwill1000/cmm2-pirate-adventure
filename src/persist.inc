@@ -17,12 +17,12 @@ Function do_save()
   If game <> 0 And fil.exists%(f$) Then
     s$ = con.in$("Overwrite game " + Str$(game) + " [y|N]? ")
     If LCase$(s$) <> "y" Then game = 0
-  End If
+  EndIf
 
   If game <> 0 Then
     s$ = con.in$("Saved game name ? ")
     If s$ = "" Then game = 0
-  End If
+  EndIf
 
   If game = 0 Then con.println("Cancelled") Exit Function
 
@@ -95,7 +95,7 @@ Function do_restore()
     do_restore = 1
   Else
     con.println("Save file is invalid: " + err$)
-  End If
+  EndIf
 
   Close #1
 End Function
@@ -120,7 +120,7 @@ Function select_game()
       con.println(s$(2) + " - " + s$(3))
     Else
       con.println("Empty")
-    End If
+    EndIf
   Next i
 
   con.println()
@@ -141,12 +141,12 @@ Sub record_on()
   If script <> 0 And fil.exists%(f$) Then
     s$ = con.in$("Overwrite script " + Str$(script) + " [y|N]? ")
     If LCase$(s$) <> "y" Then script = 0
-  End If
+  EndIf
 
   If script <> 0 Then
     s$ = con.in$("Script name ? ")
     If s$ = "" Then script = 0
-  End If
+  EndIf
 
   If script = 0 Then con.println("Cancelled") : Exit Sub
 
@@ -177,7 +177,7 @@ Function select_script()
       Close #1
     Else
       con.println("Empty")
-    End If
+    EndIf
   Next i
 
   con.println()
