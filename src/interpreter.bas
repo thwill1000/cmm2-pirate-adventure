@@ -139,7 +139,7 @@ Sub describe_room()
 
   ' Object 9 is the lit light source.
   If df And ia(9) <> -1 And ia(9) <> r Then
-    If debug Then con.out("[" + Str$(r) + "] ")
+    If debug Then con.print("[" + Str$(r) + "] ")
     con.println("I can't see, its too dark!")
     Exit Sub
   EndIf
@@ -147,7 +147,7 @@ Sub describe_room()
   Cls
   con.lines = 0
 
-  If debug Then con.out("[" + Str$(r) + "] ")
+  If debug Then con.print("[" + Str$(r) + "] ")
   If Left$(rs$(r), 1) = "*" Then
     ' A leading asterisk means use the room description verbatim.
     con.println(Mid$(rs$(r), 2))
@@ -155,17 +155,17 @@ Sub describe_room()
     con.println("I'm in a " + rs$(r))
   EndIf
 
-  con.out("Obvious exits: ")
+  con.print("Obvious exits: ")
   For i = 0 To 5
     If rm(r, i) <> 0 Then
-      con.out(nv_str$(i + 1, 1) + " ")
+      con.print(nv_str$(i + 1, 1) + " ")
       count = count + 1
     EndIf
   Next i
-  If count = 0 Then con.out("NONE")
+  If count = 0 Then con.print("None")
   con.println()
 
-  con.out("Visible items: ")
+  con.print("Visible items: ")
   print_object_list(r, "None")
 
   con.println("<" + String$(CON.WIDTH - 3, "-") + ">")
@@ -180,18 +180,18 @@ Sub print_object_list(rm, none$)
   For i = 0 To il
     If ia(i) = rm Then
       count = count + 1
-      If count > 1 Then con.out(", ")
-      If debug Then con.out("[" + Str$(i) + "] ")
+      If count > 1 Then con.print(", ")
+      If debug Then con.print("[" + Str$(i) + "] ")
       p = InStr(ia_str$(i), "/")
       If p < 1 Then
-        con.out(ia_str$(i))
+        con.print(ia_str$(i))
       Else
-        con.out(Left$(ia_str$(i), p - 1))
+        con.print(Left$(ia_str$(i), p - 1))
       EndIf
     EndIf
   Next i
 
-  If count = 0 Then con.out(none$)
+  If count = 0 Then con.print(none$)
   con.println()
 End Sub
 
@@ -484,7 +484,7 @@ Sub do_command(a, cmd)
       For i = 1 To il
         If ia(i) = tr And Left$(ia_str$(i), 1) = "*" Then x = x + 1
       Next i
-      con.out("I've stored " + Str$(x) + " treasures. On a scale of 0 to 100 that rates a ")
+      con.print("I've stored " + Str$(x) + " treasures. On a scale of 0 to 100 that rates a ")
       con.println(Str$(Int(x/tt*100)) + ".")
       msg = 1
       If x = tt Then
@@ -495,7 +495,7 @@ Sub do_command(a, cmd)
     Case 66
       ' INV
       ' Tells the player what objects they are carrying.
-      con.out("I'm carrying: ")
+      con.print("I'm carrying: ")
       print_object_list(-1, "Nothing")
       msg = 1
 
@@ -551,7 +551,7 @@ Sub do_command(a, cmd)
 End Sub
 
 Sub print_message(i)
-  If debug Then con.out("[" + Str$(i) + "] ")
+  If debug Then con.print("[" + Str$(i) + "] ")
   con.println(ms$(i))
   msg = 1
 End Sub
@@ -608,13 +608,13 @@ Sub print_state()
   con.println("Current room:    " + Str$(r))
   con.println("Dark flag:       " + Str$(df))
   con.println("Remaining light: " + Str$(lx))
-  con.out("Set flags:       ")
+  con.print("Set flags:       ")
   Local count, i
   For i = 0 To 31
     If sf And 1 << i Then
       count = count + 1
-      If count > 1 Then con.out(", ")
-      con.out(Str$(i))
+      If count > 1 Then con.print(", ")
+      con.print(Str$(i))
     EndIf
   Next i
   con.println()

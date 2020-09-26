@@ -5,7 +5,7 @@ Dim con.buf$   ' console write buffer
 Dim con.space  ' was the last character written to con.buf$ a space?
 Dim con.lines  ' number of lines that have been output since the last prompt
 Dim con.count  ' number of consecutive calls to con.endl() without an
-               ' intervening call to con.out()
+               ' intervening call to con.print()
 Dim con.x = 1  ' current horizontal cursor position, indexed from 1
 Dim con.spin   ' is the spinning cursor currently displayed?
 Dim con.fd_in  ' file descriptor to read input from
@@ -21,7 +21,7 @@ Dim CON.WIDTH = 100
 Function con.in$(p$)
   Local s$
 
-  con.out(p$)
+  con.print(p$)
   con.flush()
   con.lines = 0
 
@@ -41,7 +41,7 @@ End Function
 ' non-spaces to spaces or vice versa do we flush the contents of con.buf$ to the
 ' console. As a result calling this function will probably not print the
 ' entirety of s$; ' the last 'word' or part thereof may be left in con.buf$.
-Sub con.out(s$)
+Sub con.print(s$)
   con.count = 0
 
   If Len(s$) = 1 Then
@@ -110,7 +110,7 @@ Sub con.endl()
 End Sub
 
 Sub con.println(s$)
-  If Len(s$) > 0 Then con.out(s$)
+  If Len(s$) > 0 Then con.print(s$)
   con.endl()
 End Sub
 

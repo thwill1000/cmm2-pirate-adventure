@@ -108,7 +108,7 @@ Function select_game()
 
   For i = 1 To 10
     f$ = save_file$(i)
-    con.out("  [" + Format$(i, "%2g") + "] ")
+    con.print("  [" + Format$(i, "%2g") + "] ")
     If fil.exists%(f$) Then
       Open f$ For Input As #1
       Line Input #1, s$(0) ' header
@@ -167,11 +167,11 @@ Function select_script()
 
   For i = 1 To 10
     f$ = script_file$(i)
-    con.out("  [" + Format$(i, "%2g") + "] ")
+    con.print("  [" + Format$(i, "%2g") + "] ")
     If fil.exists%(f$) Then
       Open f$ For Input As #1
       Line Input #1, s$ ' date/time
-      con.out(Mid$(s$, 3) + " - ")
+      con.print(Mid$(s$, 3) + " - ")
       Line Input #1, s$ ' script name
       con.println(Mid$(s$, 3))
       Close #1
