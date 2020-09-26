@@ -26,7 +26,7 @@ Function con.in$(p$)
   con.lines = 0
 
   Line Input #con.fd_in, s$
-  If con.fd_in > 0 Then con.out(s$) : con.endl()
+  If con.fd_in > 0 Then con.println(s$)
   con.x = 1
   If con.fd_in > 0 And Eof(#con.fd_in) Then Close #con.fd_in : con.fd_in = 0
 
@@ -109,6 +109,11 @@ Sub con.endl()
   con.x = 1
 End Sub
 
+Sub con.println(s$)
+  If Len(s$) > 0 Then con.out(s$)
+  con.endl()
+End Sub
+
 ' Echos the contents of a (hopefully) text file to the console.
 Sub con.print_file(f$)
   Local s$
@@ -116,8 +121,7 @@ Sub con.print_file(f$)
   Open f$ For Input As #1
   Do
     Line Input #1, s$
-    con.out(s$)
-    con.endl()
+    con.println(s$)
   Loop While Not Eof(#1)
   Close #1
 End Sub

@@ -9,8 +9,8 @@ Const SCRIPT_DIR$ = FIL.PROG_DIR$ + "/scripts"
 Function do_save()
   Local f$, i, game, s$
 
-  con.out("Select saved game slot:") : con.endl()
-  con.endl()
+  con.println("Select saved game slot:")
+  con.println()
   game = select_game()
   If game <> 0 Then f$ = save_file$(game)
 
@@ -24,9 +24,9 @@ Function do_save()
     If s$ = "" Then game = 0
   End If
 
-  If game = 0 Then con.out("Cancelled") : con.endl() : Exit Function
+  If game = 0 Then con.println("Cancelled") Exit Function
 
-  con.out("Saving '" + f$ + "' ...") : con.endl()
+  con.println("Saving '" + f$ + "' ...")
 
   Open f$ For Output As #1
 
@@ -59,14 +59,14 @@ End Function
 Function do_restore()
   Local err$, f$, i, game, s$, values(4 + il)
 
-  con.out("Select saved game to restore from:") : con.endl()
-  con.endl()
+  con.println("Select saved game to restore from:")
+  con.println()
   game = select_game()
   If game <> 0 Then f$ = save_file$(game)
 
   If game <> 0 And Not fil.exists%(f$) Then game = 0
 
-  If game = 0 Then con.out("Cancelled") : con.endl() : Exit Function
+  If game = 0 Then con.println("Cancelled") Exit Function
 
   Open f$ For Input As #1
 
@@ -75,7 +75,7 @@ Function do_restore()
   Line Input #1, s$
   Line Input #1, s$
   Line Input #1, s$
-  con.out("Restoring '" + s$ + "' ...") : con.endl()
+  con.println("Restoring '" + s$ + "' ...")
 
   For i = 0 To 4 + il
     Line Input #1, s$
@@ -94,7 +94,7 @@ Function do_restore()
 
     do_restore = 1
   Else
-    con.out("Save file is invalid: " + err$) : con.endl()
+    con.println("Save file is invalid: " + err$)
   End If
 
   Close #1
@@ -117,13 +117,13 @@ Function select_game()
       Line Input #1, s$(3) ' game name
       Close #1
       ' TODO: verify header / version ?
-      con.out(s$(2) + " - " + s$(3)) : con.endl()
+      con.println(s$(2) + " - " + s$(3))
     Else
-      con.out("Empty") : con.endl()
+      con.println("Empty")
     End If
   Next i
 
-  con.endl()
+  con.println()
   s$(0) = con.in$("Saved game slot ? ")
   select_game = Val(s$(0))
   If select_game < 1 Or select_game > 10 Then select_game = 0
@@ -133,8 +133,8 @@ End Function
 Sub record_on()
   Local f$, script, s$
 
-  con.out("Select script slot to record:") : con.endl()
-  con.endl()
+  con.println("Select script slot to record:")
+  con.println()
   script = select_script()
   If script <> 0 Then f$ = script_file$(script)
 
@@ -148,9 +148,9 @@ Sub record_on()
     If s$ = "" Then script = 0
   End If
 
-  If script = 0 Then con.out("Cancelled") : con.endl() : Exit Sub
+  If script = 0 Then con.println("Cancelled") : Exit Sub
 
-  con.out("Recording to '" + f$ + "' ...") : con.endl()
+  con.println("Recording to '" + f$ + "' ...")
 
   con.open_out(2, f$)
 
@@ -173,14 +173,14 @@ Function select_script()
       Line Input #1, s$ ' date/time
       con.out(Mid$(s$, 3) + " - ")
       Line Input #1, s$ ' script name
-      con.out(Mid$(s$, 3)) : con.endl()
+      con.println(Mid$(s$, 3))
       Close #1
     Else
-      con.out("Empty") : con.endl()
+      con.println("Empty")
     End If
   Next i
 
-  con.endl()
+  con.println()
   s$ = con.in$("Script slot ? ")
   select_script = Val(s$)
   If select_script < 1 Or select_script > 10 Then select_script = 0
@@ -195,22 +195,22 @@ End Function
 
 Sub record_off()
   con.close_out()
-  con.out("Recording stopped.") : con.endl()
+  con.println("Recording stopped.")
 End Sub
 
 Sub replay_on()
   Local f$, script, s$
 
-  con.out("Select script slot to replay:") : con.endl()
-  con.endl()
+  con.println("Select script slot to replay:")
+  con.println()
   script = select_script()
   If script <> 0 Then f$ = script_file$(script)
 
   If script <> 0 And Not fil.exists%(f$) Then script = 0
 
-  If script = 0 Then con.out("Cancelled") : con.endl() : Exit Sub
+  If script = 0 Then con.println("Cancelled") : Exit Sub
 
-  con.out("Replaying from '" + f$ + "' ...") : con.endl()
+  con.println("Replaying from '" + f$ + "' ...")
 
   con.open_in(3, f$)
 
@@ -218,4 +218,3 @@ Sub replay_on()
   Line Input #3, s$
   Line Input #3, s$
 End Sub
-

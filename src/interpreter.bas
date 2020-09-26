@@ -65,7 +65,7 @@ Sub main(story$)
     con.close()
   Loop While state <> STATE_QUIT
 
-  con.out("Goodbye!") : con.endl()
+  con.println("Goodbye!")
   con.close()
 End Sub
 
@@ -76,16 +76,16 @@ Sub show_intro(f$)
   Cls
   con.lines = 0
   con.print_file(f$)
-'  con.out("   Scott Adams Adventure Interpreter for Colour Maximite 2") : con.endl()
-'  con.out("                (c) Thomas Hugo Williams 2020") : con.endl()
-  con.endl()
-  con.out(sp$ + "S  Start the game") : con.endl()
-  con.out(sp$ + "R  Restore a saved game") : con.endl()
-  con.out(sp$ + "C  Show credits") : con.endl()
-  con.out(sp$ + "I  Instructions on how to play") : con.endl()
-  con.out(sp$ + "T  Toggle display colours") : con.endl()
-  con.out(sp$ + "Q  Quit") : con.endl()
-  con.endl()
+'  con.println("   Scott Adams Adventure Interpreter for Colour Maximite 2")
+'  con.println("                (c) Thomas Hugo Williams 2020")
+  con.println()
+  con.println(sp$ + "S  Start the game")
+  con.println(sp$ + "R  Restore a saved game")
+  con.println(sp$ + "C  Show credits")
+  con.println(sp$ + "I  Instructions on how to play")
+  con.println(sp$ + "T  Toggle display colours")
+  con.println(sp$ + "Q  Quit")
+  con.println()
 
   Do While Inkey$ <> "" : Loop
   Do
@@ -140,7 +140,7 @@ Sub describe_room()
   ' Object 9 is the lit light source.
   If df And ia(9) <> -1 And ia(9) <> r Then
     If debug Then con.out("[" + Str$(r) + "] ")
-    con.out("I can't see, its too dark!") : con.endl()
+    con.println("I can't see, its too dark!")
     Exit Sub
   EndIf
 
@@ -150,9 +150,9 @@ Sub describe_room()
   If debug Then con.out("[" + Str$(r) + "] ")
   If Left$(rs$(r), 1) = "*" Then
     ' A leading asterisk means use the room description verbatim.
-    con.out(Mid$(rs$(r), 2)) : con.endl()
+    con.println(Mid$(rs$(r), 2))
   Else
-    con.out("I'm in a " + rs$(r)) : con.endl()
+    con.println("I'm in a " + rs$(r))
   EndIf
 
   con.out("Obvious exits: ")
@@ -163,13 +163,13 @@ Sub describe_room()
     EndIf
   Next i
   If count = 0 Then con.out("NONE")
-  con.endl()
+  con.println()
 
   con.out("Visible items: ")
   print_object_list(r, "None")
 
-  con.out("<" + String$(CON.WIDTH - 3, "-") + ">") : con.endl()
-  con.endl()
+  con.println("<" + String$(CON.WIDTH - 3, "-") + ">")
+  con.println()
 
   msg = 1
 End Sub
@@ -192,7 +192,7 @@ Sub print_object_list(rm, none$)
   Next i
 
   If count = 0 Then con.out(none$)
-  con.endl()
+  con.println()
 End Sub
 
 Sub do_actions(verb, noun, nstr$)
@@ -253,9 +253,9 @@ Sub do_actions(verb, noun, nstr$)
   End If
 
   Select Case result
-    Case ACTION_UNKNOWN : con.out("I don't understand your command.") : con.endl()
-    Case ACTION_NOT_YET : con.out("I can't do that yet.") : con.endl()
-    Case Else :           If Not msg Then con.out("OK.") : con.endl()
+    Case ACTION_UNKNOWN : con.println("I don't understand your command.")
+    Case ACTION_NOT_YET : con.println("I can't do that yet.")
+    Case Else :           If Not msg Then con.println("OK.")
   End Select
 
 End Sub
@@ -485,11 +485,11 @@ Sub do_command(a, cmd)
         If ia(i) = tr And Left$(ia_str$(i), 1) = "*" Then x = x + 1
       Next i
       con.out("I've stored " + Str$(x) + " treasures. On a scale of 0 to 100 that rates a ")
-      con.out(Str$(Int(x/tt*100)) + ".") : con.endl()
+      con.println(Str$(Int(x/tt*100)) + ".")
       msg = 1
       If x = tt Then
-        con.out("Well done.") : con.endl()
-        Goto 850
+        con.println("Well done.")
+        Goto 850 ' TODO
       EndIf
 
     Case 66
@@ -552,12 +552,12 @@ End Sub
 
 Sub print_message(i)
   If debug Then con.out("[" + Str$(i) + "] ")
-  con.out(ms$(i)) : con.endl()
+  con.println(ms$(i))
   msg = 1
 End Sub
 
 Sub print_response(s$)
-  con.out(s$) : con.endl()
+  con.println(s$)
   msg = 1
 End Sub
 
@@ -580,13 +580,13 @@ Sub prompt_for_input(verb, noun, nstr$)
 
   verb = 0
   Do While verb <= 0
-    If con.count = 1 Then con.endl()
+    If con.count = 1 Then con.println()
     s$ = con.in$("Tell me what to do ? ")
     parse(s$, verb, noun, nstr$)
     If verb < 0 Then
       do_meta_command(verb)
     ElseIf verb = 0 Then
-      con.out("You use word(s) I don't know!") : con.endl()
+      con.println("You use word(s) I don't know!")
     EndIf
   Loop
 
@@ -594,20 +594,20 @@ End Sub
 
 Sub do_meta_command(verb)
   Select Case verb
-    Case VERB_RECORD_ON  : con.endl() : record_on()
+    Case VERB_RECORD_ON  : con.println() : record_on()
     Case VERB_RECORD_OFF : record_off()
-    Case VERB_REPLAY_ON  : con.endl() : replay_on()
-    Case VERB_DUMP_STATE : con.endl() : print_state()
-    Case VERB_DEBUG_ON   : con.out("OK.") : con.endl() : debug = 1
-    Case VERB_DEBUG_OFF  : con.out("OK.") : con.endl() : debug = 0
+    Case VERB_REPLAY_ON  : con.println() : replay_on()
+    Case VERB_DUMP_STATE : con.println() : print_state()
+    Case VERB_DEBUG_ON   : con.println("OK.") : debug = 1
+    Case VERB_DEBUG_OFF  : con.println("OK.") : debug = 0
     Case Else            : Error "Unexpected meta command: " + Str$(verb)
   End Select
 End Sub
 
 Sub print_state()
-  con.out("Current room:    " + Str$(r)) : con.endl()
-  con.out("Dark flag:       " + Str$(df)) : con.endl()
-  con.out("Remaining light: " + Str$(lx)) : con.endl()
+  con.println("Current room:    " + Str$(r))
+  con.println("Dark flag:       " + Str$(df))
+  con.println("Remaining light: " + Str$(lx))
   con.out("Set flags:       ")
   Local count, i
   For i = 0 To 31
@@ -617,7 +617,7 @@ Sub print_state()
       con.out(Str$(i))
     EndIf
   Next i
-  con.endl()
+  con.println()
 End Sub
 
 Sub parse(s$, verb, noun, nstr$)
@@ -709,12 +709,12 @@ End Function
 Sub do_get(nstr$)
   Local carried = 0, i, k
 
-  If nstr$ = "" Then con.out("What?") : con.endl() : Exit Sub
+  If nstr$ = "" Then con.println("What?") : Exit Sub
 
   For i = 0 To il
     If ia(i) = -1 Then carried = carried + 1
   Next i
-  If carried >= mx Then con.out("I've too much to carry!") : con.endl() : Exit Sub
+  If carried >= mx Then con.println("I've too much to carry!") : Exit Sub
 
   For i = 0 To il
     If LCase$(obj_noun$(i)) = nstr$ Then
@@ -729,9 +729,9 @@ Sub do_get(nstr$)
   Next i
 
   If k = 2 Then
-    con.out("I don't see it here.") : con.endl() : msg = 1
+    con.println("I don't see it here.") : msg = 1
   ElseIf k = 0 Then
-    con.out("It's beyond my power to do that.") : con.endl() : msg = 1
+    con.println("It's beyond my power to do that.") : msg = 1
   EndIf
 End Sub
 
@@ -753,7 +753,7 @@ End Function
 Sub do_drop(nstr$)
   Local i, k = 0
 
-  If nstr$ = "" Then con.out("What?") : con.endl() : Exit Sub
+  If nstr$ = "" Then con.println("What?") : Exit Sub
 
   For i = 0 To il
     If LCase$(obj_noun$(i)) = nstr$ Then
@@ -768,9 +768,9 @@ Sub do_drop(nstr$)
   Next i
 
   If k = 1 Then
-    con.out("I'm not carrying it!") : con.endl() : msg = 1
+    con.println("I'm not carrying it!") : msg = 1
   ElseIf k = 0 Then
-    con.out("It's beyond my power to do that.") : con.endl() : msg = 1
+    con.println("It's beyond my power to do that.") : msg = 1
   EndIf
 
 End Sub
@@ -780,10 +780,10 @@ Sub update_light()
   If ia(9) = -1 Then
     lx = lx - 1 ' decrement its duration
     If lx < 0 Then
-      con.out("Light has run out!") : con.endl()
+      con.println("Light has run out!")
       ia(9) = 0
     ElseIf lx < 25 Then
-      con.out("Light runs out in " + Str$(lx) + " turns!") : con.endl()
+      con.println("Light runs out in " + Str$(lx) + " turns!")
     EndIf
   EndIf
 End Sub
