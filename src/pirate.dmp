@@ -52,8 +52,8 @@ ACTIONS
 34:   LIG   TOR   HAS 8    AVL 10   Par 8    Par 9    Par 0    EXx,x   CLS     MSG:8   DspRM   
 35:   UNL   TOR   HAS 9    Par 9    Par 8    Par 0    Par 0    x->RM0  GETx    0       0       
 36:   HEL   ANY   IN 5     Par 0    Par 0    Par 0    Par 0    MSG:6   0       0       0       
-37:   GET   DUB   IN/W 22  -IN/W 23 Par 22   Par 0    Par 0    GETx    0       0       0       
-38:   GET   DUB   IN/W 22  IN/W 23  Par 0    Par 0    Par 0    MSG:5   MSG:10  DEAD    0       
+37:   GET   DOU   IN/W 22  -IN/W 23 Par 22   Par 0    Par 0    GETx    0       0       0
+38:   GET   DOU   IN/W 22  IN/W 23  Par 0    Par 0    Par 0    MSG:5   MSG:10  DEAD    0
 39:   GO    SHA   IN/W 16  Par 9    Par 0    Par 0    Par 0    GOTOy   CLS     DspRM   0       
 40:   GET   CHE   IN/W 13  IN/W 12  Par 0    Par 0    Par 0    MSG:12  0       0       0       
 41:   GET   CHE   IN/W 13  -IN/W 12 Par 13   Par 0    Par 0    GETx    0       0       0       
@@ -163,7 +163,7 @@ ACTIONS
 145:  HEL   ANY   IN 11    Par 0    Par 0    Par 0    Par 0    MSG:66  MSG:67  MSG:69  0       
 146:  SAY   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:64  0       0       0       
 147:  HEL   ANY   IN 6     Par 0    Par 0    Par 0    Par 0    MSG:59  0       0       0       
-148:  *FOL  ANY   BIT 10   Par 52   Par 53   Par 0    Par 0    EXx,x   MSG:69  0       0       
+148:  WAI   ANY   BIT 10   Par 52   Par 53   Par 0    Par 0    EXx,x   MSG:69  0       0
 149:  HEL   ANY   IN 9     IN/W 12  Par 0    Par 0    Par 0    MSG:24  0       0       0       
 150:  DIG   ANY   HAS 46   Par 8    Par 7    Par 0    Par 0    MSG:49  CLRz    CLRz    0       
 151:  HEL   ANY   Par 0    Par 0    Par 0    Par 0    Par 0    MSG:3   0       0       0       
@@ -178,7 +178,7 @@ VOCAB
 4:    *RUN  WEST
 5:    *ENT  UP
 6:    *PAC  DOWN
-7:    *FOL  STA
+7:    WAI   STA
 8:    SAY   PAS
 9:    SAI   HAL
 10:   GET   BOO
@@ -200,16 +200,16 @@ VOCAB
 26:   SAI   RUG
 27:   LOO   KEY
 28:   *SHO  INV
-29:   WAI   DUB
+29:         DOU
 30:   REA   SAI
-31:   .     FIS
+31:         FIS
 32:   YOH   ANC
 33:   SCO   SHA
 34:   SAV   PLA
 35:   KIL   CAV
 36:   *ATT  PAT
 37:   LIG   DOO
-38:   .     CHE
+38:         CHE
 39:   OPE   PAR
 40:   *SMA  HAM
 41:   UNL   NAI
@@ -237,55 +237,55 @@ ROOMS
 
 0:    <storeroom>
       Exits: None
-1:    APARTMENT IN LONDON
+1:    *I'm in a flat in London.
       Exits: None
-2:    ALCOVE
+2:    *I'm in an alcove.
       Exits: Down
-3:    SECRET PASSAGEWAY
+3:    secret passageway.
       Exits: East, West
-4:    MUSTY ATTIC
+4:    musty attic.
       Exits: West
-5:    *I'M OUTSIDE AN OPEN WINDOW ON A LEDGE ON THE SIDE OF A VERY TALL BUILDING
+5:    *I'm outside an open window on a ledge on the side of a very tall building.
       Exits: None
-6:    SANDY BEACH ON A TROPICAL ISLE
+6:    *I'm on a sandy beach on a tropical isle.
       Exits: East
-7:    MAZE OF CAVES
+7:    maze of caves.
       Exits: South, East, West, Down
-8:    MEADOW
+8:    meadow.
       Exits: East, West
-9:    GRASS SHACK
+9:    grass shack.
       Exits: West
-10:   *I'M IN THE OCEAN
+10:   *I'm in the ocean.
       Exits: North, South, East, West
-11:   PIT
+11:   pit.
       Exits: Up
-12:   MAZE OF CAVES
+12:   maze of caves.
       Exits: North, East, West
-13:   MAZE OF CAVES
+13:   maze of caves.
       Exits: North, South, East, West
-14:   *I'M AT THE FOOT OF A CAVE RIDDEN HILL. A PATH LEADS TO THE TOP
+14:   *I'm at the foot of a cave ridden hill. A path leads to the top.
       Exits: West
-15:   TOOL SHED
+15:   Tool shed.
       Exits: North
-16:   LONG HALLWAY
+16:   Long hallway.
       Exits: East
-17:   LARGE CAVERN
+17:   Large cavern.
       Exits: West
-18:   *I'M ON TOP OF A HILL. BELOW IS PIRATES ISLAND. ACROSS THE SEA OFF IN THE DISTANCE I SEE *TREASURE* ISLAND
+18:   *I'm on top of a hill. Below is Pirate's Island. Across the sea off in the distance I can see *TREASURE* Island.
       Exits: Down
-19:   MAZE OF CAVES
+19:   maze of caves.
       Exits: South, East, West
-20:   *I'M ABOARD PIRATE SHIP ANCHORED OFF SHORE
+20:   *I'm aboard a pirate ship anchored off shore.
       Exits: None
-21:   *I'M ON THE BEACH AT TREASURE ISLAND
+21:   *I'm on the beach at Treasure Island.
       Exits: South
-22:   SPOOKY OLD GRAVEYARD FILLED WITH PILES OF EMPTY AND BROKEN RUM BOTTLES
+22:   Spooky old graveyard filled with piles of empty and broken rum bottles.
       Exits: North, East
-23:   LARGE BARREN FIELD
+23:   Large barren field.
       Exits: West
-24:   SHALLOW LAGOON. TO THE NORTH IS THE OCEAN
+24:   Shallow lagoon. To the north is the ocean.
       Exits: North, South, East, West
-25:   SACKED AND DESERTED MONASTARY
+25:   Sacked and deserted monastery.
       Exits: West
 26:   <empty>
       Exits: None
@@ -301,146 +301,146 @@ ROOMS
       Exits: None
 32:   <empty>
       Exits: None
-33:   *WELCOME TO NEVER NEVER LAND
+33:   *Welcome to Never Never Land.
       Exits: None
 
 MESSAGES
 --------
 
 0:    <empty>
-1:    THERE'S A STRANGE SOUND
-2:    THE NAME OF THE BOOK IS -TREASURE ISLAND- THERE'S A WORD ENGRAVED IN THE FLYLEAF -YOHO- AND A MESSAGE -LONG JOHN SILVER LEFT 2 TREASURES ON TREASURE ISLAND!-
-3:    NOTHING HAPPENS
-4:    THERE'S SOMETHING THERE ALRIGHT. MAYBE I SHOULD
-5:    THAT'S NOT VERY SAFE
-6:    YOU MAY NEED MAGIC HERE
-7:    EVERYTHING SPINS AROUND AND SUDDENLY YOU ARE ELSEWHERE...
-8:    TORCH IS LIT
-9:    I WAS WRONG. I GUESS ITS NOT A MONGOOSE CAUSE THE SNAKES BIT IT.
-10:   I'M SNAKE BIT
-11:   PARROT ATTACKS SNAKES AND DRIVES THEM OFF
-12:   PIRATE WON'T LET ME
-13:   ITS LOCKE D
-14:   ITS OPEN
-15:   THERE ARE A SET OF PLANS IN IT
-16:   NOT WHILE I'M CARRYING IT
-17:   CROCS STOP M E
-18:   SORRY I CAN'T
-19:   WRONG GAME YOU SILLY GOOSE!
-20:   I DON'T HAVE IT
-21:   PIRATE GRABS RUM AND SCUTTLES OFF CHORTLING
-22:   ...I THINK ITS ME. HEE HEE.
-23:   ITS NAILED TO THE FLOOR!
-24:   -MAGIC WORD- HO AND A ... (WORK ON IT. YOU'LL GET IT)
-25:   NO. SOMETHING IS MISSING!
-26:   IT WAS A TIGHT SQUEEZE!
-27:   SOMETHING WON'T FIT
-28:   SINCE NOTHING IS HAPPENING
-29:   I SLIPPED AND FELL...
-30:   SOMETHING FALLS OUT
-31:   THEY'RE PLANS TO BUILD JOLLY ROGER (A PIRATE SHIP!) YOU'LL NEED HAMMER NAILS LUMBER ANCHOR SAILS AND KEEL.
-32:   I'VE NO CONTAINER
-33:   IT SOAKS INTO THE GROUND
-34:   TOO DRY. FISH VANISH.
-35:   PIRATE AWAKENS. SAYS -AYE MATEY WE BE CASTING OFF SOON- HE THEN VANISHES.
-36:   WHAT A WASTE...
-37:   I'VE NO CREW
-38:   PIRATE SAYS -AYE MATEY WE BE NEEDING A MAP FIRST-
-39:   AFTER A MONTH AT SEA WE SET ANCHOR OFF OF A SANDY BEACH. ALL ASHORE WHO'S GOING ASHORE...
-40:   TRY -WEIGH ANCHOR-
-41:   THERE'S A MAP IN IT
-42:   ITS A MAP TO TREASURE ISLAND. AT THE BOTTOM IT SAYS -30 PACES AND THEN DIG!-
-43:   * WELCOME TO -PIRATES ADVENTURE- BY SCOTT & ALEXIS ADAMS *
-44:   ITS EMPTY
-45:   I'VE NO PLANS!
-46:   OPEN IT?
-47:   GO THERE?
-48:   I FOUND SOMETHING!
-49:   I DIDN'T FIND ANYTHING
-50:   I DON'T SEE IT HERE
-51:   OK I WALKED OFF 30 PACES.
-52:   CONGRATULATIONS !!! BUT YOUR ADVENTURE I S NOT OVER YET...
-53:   READING EXPANDS THE MIND
-54:   THE PARROT CRYS
-55:   -CHECK THE BAG MATEY-
-56:   -CHECK THE CHEST MATEY-
-57:   FROM THE OTHER SIDE!
-58:   OPEN THE BOOK!
-59:   THERE'S MULTIPLE EXITS HERE!
-60:   CROCS EAT FISH AND LEAVE
-61:   I'M UNDERWATER. I CAN'T SWIM. BLUB BLUB...
-62:   -PIECES OF EIGHT-
-63:   ITS STUCK IN THE SAND
-64:   USE 1 WORD
-65:   PIRATE SAYS -AYE MATEY WE BE WAITING FOR THE TIDE TO COME IN-
-66:   THE TIDE IS OUT
-67:   THE TIDE IS COMING IN
-68:   ABOUT 20 POUNDS. TRY -SET SAIL-
-69:   -TIDES A CHANGING MATEY-
-70:   NOTE HERE -I BE LIKING PARROTS. THEY BE SMART MATEY-
-71:   PIRATE FOLLOWS YOU ASHORE AS IF HE IS WAITING FOR SOMETHING.
+1:    There's a strange sound.
+2:    The name of the book is "Treasure Island". There's a word engraved in the flyleaf: "Yoho" and a message: "Long John Silver left two treasures on Treasure Island!"
+3:    Nothing happens.
+4:    There's something there alright. Maybe I should.
+5:    That's not very safe.
+6:    You may need magic here.
+7:    Everything spins around and suddenly you are elsewhere...
+8:    The torch is lit.
+9:    I was wrong. I guess it's not a mongoose because the snakes bit it.
+10:   I'm snake bit.
+11:   The parrot attacks the snakes and drives them off.
+12:   The pirate won't let me.
+13:   It's locked.
+14:   It's open.
+15:   There are a set of plans in it.
+16:   Not whilst I'm carrying it.
+17:   The crocodiles stop me.
+18:   Sorry, I can't.
+19:   Wrong game you silly goose!
+20:   I don't have it.
+21:   The pirate grabs the rum and scuttles off chortling.
+22:   ...I think it's me. Hee Hee.
+23:   It's nailed to the floor.
+24:   "Magic Word" Ho and a ... (Work on it. You'll get it.)
+25:   No. Something is missing!
+26:   It was a tight squeeze!
+27:   Something won't fit.
+28:   Since nothing is happening...
+29:   I slipped and fell...
+30:   Something falls out.
+31:   They're plans to build "Jolly Roger" (a pirate ship!) You'll need hammer, nails, lumber, anchor, sails and a keel.
+32:   I've no container.
+33:   It soaks into the ground.
+34:   It's too dry. The fish vanish.
+35:   The pirate awakens and says "Aye Matey, we be casting off soon." He then vanishes.
+36:   What a waste...
+37:   I've no crew.
+38:   The pirate says "Aye Matey, we be needing a map first."
+39:   After a month at sea we set anchor off of a sandy beach. All ashore who's going ashore...
+40:   Try "Weigh Anchor".
+41:   There's a map in it.
+42:   It's a map to Treasure Island. At the bottom it says "30 paces and then dig!"
+43:   * Welcome to "Pirate Adventure" by Scott & Alexis Adams. *
+44:   It's empty.
+45:   I've no plans!
+46:   Open it?
+47:   Go there?
+48:   I found something!
+49:   I didn't find anything.
+50:   I don't see it here.
+51:   OK, I've walked off 30 paces.
+52:   Congratulations !!! But you adventure is not over yet...
+53:   Reading expands the mind.
+54:   The parrot crys...
+55:   "Check the bag Matey."
+56:   "Check the chest Matey."
+57:   From the other side!
+58:   Open the book!
+59:   There are multiple exits here!
+60:   The crocodiles eat the fish and leave.
+61:   I'm underwater. I can't swim. Blub blub...
+62:   "Pieces of Eight."
+63:   It's stuck in the sand.
+64:   Use one word.
+65:   The pirate says "Aye Matey, we be waiting for the tide to come in."
+66:   The tide is out.
+67:   The tide is coming in.
+68:   About twenty pounds. Try "Set Sail".
+69:   "Tides a changing Matey."
+70:   Note here: "I be liking parrots. They be smart Matey."
+71:   The pirate follows you ashore as if he is waiting for something.
 
 OBJECTS
 -------
 
-0:    1     FLIGHT OF STAIRS
-1:    2     OPEN WINDOW
-2:    2     BOOKS IN A BOOKCASE
-3:    0     LARGE LEATHER BOUND BOOK/BOO/
-4:    0     BOOKCASE WITH A SECRET PASSAGE BEHIND IT
-5:    4     PIRATE'S DUFFEL BAG/BAG/
-6:    1     SIGN ON WALL -RETURN TREASURES HERE. SAY SCORE- SIGN BY STAIRS -ANTONYM OF LIGHT IS UNLIGHT-
-7:    0     EMPTY BOTTLE/BOT/
-8:    4     UNLIT TORCH/TOR/
-9:    0     LIT TORCH/TOR/
-10:   0     MATCHES/MAT/
-11:   6     SMALL SHIP'S KEEL AND MAST
-12:   9     WICKED LOOKING PIRATE
-13:   9     TREASURE CHEST/CHE/
-14:   8     MONGOOSE/MON/
-15:   24    RUSTY ANCHOR/ANC/
-16:   8     GRASS SHACK
-17:   11    MEAN AND HUNGRY LOOKING CROCODILES
-18:   11    LOCKED DOOR
-19:   0     OPEN DOOR WITH HALL BEYOND
-20:   17    PILE OF SAILS/SAI/
-21:   10    FISH/FIS/
-22:   25    *DUBLEONS*/DUB/
-23:   25    DEADLY MAMBA SNAKES/SNA/
-24:   9     PARROT/PAR/
-25:   1     BOTTLE OF RUM/BOT/
-26:   0     RUG/RUG/
-27:   0     RING OF KEYS/KEY/
-28:   0     OPEN TREASURE CHEST/CHE/
-29:   0     SET OF PLANS/PLA/
-30:   1     RUG
-31:   15    CLAW HAMMER/HAM/
-32:   0     NAILS/NAI/
-33:   17    PILE OF PRECUT LUMBER/LUM/
-34:   17    TOOL SHED
-35:   16    LOCKED DOOR
-36:   0     OPEN DOOR WITH PIT BEYOND
-37:   0     PIRATE SHIP
-38:   18    ROCK WALL WITH NARROW CRACK IN IT
-39:   17    NARROW CRACK IN THE ROCK
-40:   10    SALT WATER
-41:   0     SLEEPING PIRATE
-42:   0     BOTTLE OF SALT WATER/BOT/
-43:   4     PIECES OF BROKEN RUM BOTTLES
-44:   1     NON-SKID SNEAKES/SNE/
-45:   0     MAP/MAP/
-46:   15    SHOVEL/SHO/
-47:   0     MOULDY OLD BONES/BON/
-48:   6     SAND/SAN/
-49:   0     BOTTLES OF RUM/BOT/
-50:   0     *RARE OLD PRICELESS STAMPS*/STA/
-51:   6     LAGOON
-52:   24    THE TIDE IS OUT
-53:   0     THE TIDE IS COMING IN
-54:   15    WATER WINGS/WIN/
-55:   0     FLOTSAM AND JETSAM
-56:   23    MONASTARY
-57:   0     PLAIN WOODEN BOX/BOX/
-58:   0     DEAD SQUIRREL
+0:    1     Flight of stairs
+1:    2     Open window
+2:    2     Books in a bookcase
+3:    0     Large leather bound book/BOO/
+4:    0     Bookcase with a secret passage behind it
+5:    4     Pirate's duffel bag/BAG/
+6:    1     Sign on wall: "Return *TREASURES* here and say 'Score'"
+7:    0     Empty bottle/BOT/
+8:    4     Unlit torch/TOR/
+9:    0     Lit torch/TOR/
+10:   0     Matches/MAT/
+11:   6     Small ship's keel and mast
+12:   9     Wicked looking pirate
+13:   9     Treasure chest/CHE/
+14:   8     Mongoose/MON/
+15:   24    Rusty anchor/ANC/
+16:   8     Grass shack
+17:   11    Mean and hungry looking crocodiles
+18:   11    Locked door
+19:   0     Open door with hall beyond
+20:   17    Pile of sails/SAI/
+21:   10    Fish/FIS/
+22:   25    *Doubloons*/DOU/
+23:   25    Deadly mamba snakes/SNA/
+24:   9     Parrot/PAR/
+25:   1     Bottle of rum/BOT/
+26:   0     Rug/RUG/
+27:   0     Ring of keys/KEY/
+28:   0     Open treasure chest/CHE/
+29:   0     Set of plans/PLA/
+30:   1     Rug
+31:   15    Claw hammer/HAM/
+32:   0     Nails/NAI/
+33:   17    Pile of precut lumber/LUM/
+34:   17    Tool shed
+35:   16    Locked door
+36:   0     Open door with a pit beyond
+37:   0     Pirate ship
+38:   18    Rock wall with a narrow crack in it
+39:   17    Narrow crack in the rock
+40:   10    Salt water
+41:   0     Sleeping pirate
+42:   0     Bottle of salt water/BOT/
+43:   4     Pieces of broken rum bottles
+44:   1     Non-slip sneakers/SNE/
+45:   0     Map/MAP/
+46:   15    Shovel/SHO/
+47:   0     Mouldy old bones/BON/
+48:   6     Sand/SAN/
+49:   0     Bottles of rum/BOT/
+50:   0     *Rare and priceless stamps*/STA/
+51:   6     Lagoon
+52:   24    The tide is out
+53:   0     The tide is coming in
+54:   15    Water wings/WIN/
+55:   0     Flotsam and jetsam
+56:   23    Monastery
+57:   0     Plain wooden box/BOX/
+58:   0     Dead squirrel
 59:   0     <empty>
 60:   0     <empty>

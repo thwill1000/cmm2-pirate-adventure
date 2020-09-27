@@ -34,7 +34,7 @@ Sub dbg.dump_actions(fd)
   Print #fd
 
   For i = 0 To cl
-    fbg.dump_action(fd, i)
+    dbg.dump_action(fd, i)
   Next i
 End Sub
 
