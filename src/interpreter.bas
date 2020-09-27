@@ -574,15 +574,13 @@ Function pseudo%(range%)
 
   If range% = 0 Then
     x% = Timer
-    Exit Function
   ElseIf range% < 0 Then
     x% = Abs(range%)
-    Exit Function
+  Else
+    x% = (a% * x% + c%) Mod m%
+    pseudo% = 1 + CInt((range% - 1) * (x% / m%))
   EndIf
 
-  x = (a% * x% + c%) Mod m%
-
-  pseudo% = 1 + CInt((range% - 1) * (x% / m%))
 End Function
 
 Sub prompt_for_command(verb, noun, nstr$)
