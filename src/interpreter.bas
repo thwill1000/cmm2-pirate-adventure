@@ -591,7 +591,7 @@ Sub prompt_for_command(verb, noun, nstr$)
   verb = 0
   Do While verb <= 0
     If con.count = 1 Then con.println()
-    s$ = prompt$("Tell me what to do ? ")
+    s$ = prompt$("Tell me what to do ? ", 1)
     parse(s$, verb, noun, nstr$)
     If verb < 0 Then
       do_meta_command(verb)
@@ -602,10 +602,10 @@ Sub prompt_for_command(verb, noun, nstr$)
 
 End Sub
 
-Function prompt$(s$)
+Function prompt$(s$, echo)
   con.print(s$)
   Colour RGB(White)
-  prompt$ = con.in$()
+  prompt$ = con.in$("", echo)
   Colour RGB(Green)
 End Function
 

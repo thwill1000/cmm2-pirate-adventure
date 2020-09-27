@@ -17,7 +17,7 @@ Dim CON.WIDTH = 100
 '!endif
 
 ' @param  p$  prompt
-Function con.in$(p$, no_echo)
+Function con.in$(p$, echo)
   Local s$
 
   con.print(p$)
@@ -31,7 +31,7 @@ Function con.in$(p$, no_echo)
     If Eof(#con.fd_in) Then Close #con.fd_in : con.fd_in = 0
   EndIf
 
-  If Not no_echo Then
+  If echo Then
     If con.fd_out > 0 Then
       If s$ <> "" Then Print #con.fd_out, s$
     EndIf
