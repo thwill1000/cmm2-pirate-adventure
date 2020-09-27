@@ -30,6 +30,8 @@ Const VERB_DEBUG_ON   = -5
 Const VERB_DEBUG_OFF  = -6
 Const VERB_FIXED_SEED = -7
 
+Dim STORY$ = "pirate"
+
 ' These global variables hold the current game state
 Dim lx ' light duration
 Dim df ' dark flag
@@ -45,18 +47,16 @@ Dim debug
 Dim ip ' action parameter pointer
 
 Mode 2
-main("pirate")
+main()
 Pause 1000
 End
 
-Sub main(story$)
-  Local s$
-
-  dat.read(story$ + ".dat")
+Sub main()
+  dat.read(FIL.PROG_DIR$ + "/" + STORY$ + ".dat")
 
   Do
     state = STATE_CONTINUE
-    show_intro(story$ + ".title")
+    show_intro(FIL.PROG_DIR$ + "/" + STORY$ + ".title")
     If state = STATE_CONTINUE Then game_loop()
     con.close()
   Loop While state <> STATE_QUIT
@@ -611,10 +611,10 @@ Sub do_meta_command(verb)
   Local _
 
   Select Case verb
-    Case VERB_RECORD_ON  : con.println() : record_on()
+    Case VERB_RECORD_ON  : record_on()
     Case VERB_RECORD_OFF : record_off()
-    Case VERB_REPLAY_ON  : con.println() : replay_on()
-    Case VERB_DUMP_STATE : con.println() : print_state()
+    Case VERB_REPLAY_ON  : replay_on()
+    Case VERB_DUMP_STATE : print_state()
     Case VERB_DEBUG_ON   : con.println("OK.") : debug = 1
     Case VERB_DEBUG_OFF  : con.println("OK.") : debug = 0
     Case VERB_FIXED_SEED : con.println("OK.") : _ = pseudo%(-7)
@@ -623,6 +623,7 @@ Sub do_meta_command(verb)
 End Sub
 
 Sub print_state()
+  con.println()
   con.println("Current room:    " + Str$(r))
   con.println("Dark flag:       " + Str$(df))
   con.println("Remaining light: " + Str$(lx))

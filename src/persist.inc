@@ -9,7 +9,8 @@ Const SCRIPT_DIR$ = FIL.PROG_DIR$ + "/scripts"
 Function do_save()
   Local f$, i, game, s$
 
-  con.println("Select saved game slot:")
+  con.println()
+  con.println("Select saved game:")
   con.println()
   game = select_game()
   If game <> 0 Then f$ = save_file$(game)
@@ -50,8 +51,8 @@ End Function
 
 ' Gets the path to the file corresponding to saved game slot 'i'.
 Function save_file$(i)
-  If i < 1 Or i > 10 Then Error "Invalid saved game slot"
-  save_file$ = SAVE_DIR$ + "/game" + Str$(i) + ".sav"
+  If i < 1 Or i > 10 Then Error "Invalid saved game number"
+  save_file$ = SAVE_DIR$ + "/" + Left$(STORY$, 6) + Str$(i) + ".sav"
 End Function
 
 ' Restores game state from a file.
@@ -59,7 +60,8 @@ End Function
 Function do_restore()
   Local err$, f$, i, game, s$, values(4 + il)
 
-  con.println("Select saved game to restore from:")
+  con.println()
+  con.println("Select saved game to restore:")
   con.println()
   game = select_game()
   If game <> 0 Then f$ = save_file$(game)
@@ -126,7 +128,7 @@ Function select_game()
   Next i
 
   con.println()
-  s$(0) = prompt$("Saved game slot ? ")
+  s$(0) = prompt$("Saved game number ? ")
   select_game = Val(s$(0))
   If select_game < 1 Or select_game > 10 Then select_game = 0
 
@@ -135,7 +137,11 @@ End Function
 Sub record_on()
   Local f$, script, s$
 
-  con.println("Select script slot to record:")
+  If con.fd_out <> 0 Then con.println("Already recording script.") : Exit Sub
+  If con.fd_in <> 0  Then con.println("Cannot record whilst replaying script.") : Exit Sub
+
+  con.println()
+  con.println("Select script to record:")
   con.println()
   script = select_script()
   If script <> 0 Then f$ = script_file$(script)
@@ -183,7 +189,7 @@ Function select_script()
   Next i
 
   con.println()
-  s$ = prompt$("Script slot ? ")
+  s$ = prompt$("Script number ? ")
   select_script = Val(s$)
   If select_script < 1 Or select_script > 10 Then select_script = 0
 
@@ -191,8 +197,8 @@ End Function
 
 ' Gets the path to the file corresponding to script slot 'i'.
 Function script_file$(i)
-  If i < 1 Or i > 10 Then Error "Invalid script slot"
-  script_file$ = SCRIPT_DIR$ + "/game" + Str$(i) + ".scr"
+  If i < 1 Or i > 10 Then Error "Invalid script number"
+  script_file$ = SCRIPT_DIR$ + "/" + Left$(STORY$, 6) + Str$(i) + ".scr"
 End Function
 
 Sub record_off()
@@ -203,7 +209,11 @@ End Sub
 Sub replay_on()
   Local f$, script, s$
 
-  con.println("Select script slot to replay:")
+  If con.fd_out <> 0 Then con.println("Cannot replay whist recording script.") : Exit Sub
+  If con.fd_in <> 0  Then con.println("Already replaying script.") : Exit Sub
+
+  con.println()
+  con.println("Select script to replay:")
   con.println()
   script = select_script()
   If script <> 0 Then f$ = script_file$(script)
