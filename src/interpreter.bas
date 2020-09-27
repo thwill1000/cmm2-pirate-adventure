@@ -28,6 +28,7 @@ Const VERB_REPLAY_ON  = -3
 Const VERB_DUMP_STATE = -4
 Const VERB_DEBUG_ON   = -5
 Const VERB_DEBUG_OFF  = -6
+Const VERB_FIXED_SEED = -7
 
 ' These global variables hold the current game state
 Dim lx ' light duration
@@ -216,8 +217,7 @@ Sub do_actions(verb, noun, nstr$)
 
     If av = 0 And verb = 0 Then
       ' Automatic action, 'an' is the probability
-      ' TODO: am I correctly generating numbers in range 1..100 ?
-      process_action = (1 + 100 * Rnd()) <= an
+      process_action = pseudo%(100) <= an
     ElseIf av = verb And (an = noun Or an = 0) Then
       ' Verb and noun match, or action noun is 'ANY'
       process_action = 1
@@ -561,6 +561,30 @@ Function get_parameter(a)
  get_parameter = value
 End Function
 
+' Generates a pseudo random integer between 1 and 'range%' inclusive.
+'
+' @param  range%  if > 0 then upper bound of generated number,
+'                 if = 0 then reinitialises seed based on Timer value,
+'                 if < 0 then sets seed to Abs(range%)
+Function pseudo%(range%)
+  Static x% = Timer ' 7
+  Static a% = 1103515245
+  Static c% = 12345
+  Static m% = 2^31
+
+  If range% = 0 Then
+    x% = Timer
+    Exit Function
+  ElseIf range% < 0 Then
+    x% = Abs(range%)
+    Exit Function
+  EndIf
+
+  x = (a% * x% + c%) Mod m%
+
+  pseudo% = 1 + CInt((range% - 1) * (x% / m%))
+End Function
+
 Sub prompt_for_command(verb, noun, nstr$)
   Local s$
 
@@ -586,6 +610,8 @@ Function prompt$(s$)
 End Function
 
 Sub do_meta_command(verb)
+  Local _
+
   Select Case verb
     Case VERB_RECORD_ON  : con.println() : record_on()
     Case VERB_RECORD_OFF : record_off()
@@ -593,6 +619,7 @@ Sub do_meta_command(verb)
     Case VERB_DUMP_STATE : con.println() : print_state()
     Case VERB_DEBUG_ON   : con.println("OK.") : debug = 1
     Case VERB_DEBUG_OFF  : con.println("OK.") : debug = 0
+    Case VERB_FIXED_SEED : con.println("OK.") : _ = pseudo%(-7)
     Case Else            : Error "Unexpected meta command: " + Str$(verb)
   End Select
 End Sub
@@ -665,6 +692,8 @@ Function lookup_meta_command(vstr$, nstr$)
       ' Note that "*replay off" makes no sense,
       ' replaying ends when the script being replayed ends.
       If nstr$ = "on" Or nstr$ = "" Then verb = VERB_REPLAY_ON
+    Case "*seed"
+      If nstr$ = "" Then verb = VERB_FIXED_SEED
     Case "*state"
       If nstr$ = "" Then verb = VERB_DUMP_STATE
   End Select
