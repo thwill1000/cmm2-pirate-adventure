@@ -1,6 +1,6 @@
-' Scott Adams Adventure Game Interpreter for Maximite
-' MMBasic port (c) Thomas Hugo Williams 2020
-' Original TRS-80 code (c) Scott Adams 1978
+' Scott Adams Adventure Game Interpreter for Colour Maximite 2
+' Original TRS-80 Level II BASIC code (c) Scott Adams 1978
+' MMBasic port for CMM2 by Thomas Hugo Williams 2020
 
 Dim il ' Highest numbered object 0..il
 Dim cl ' Highest action number 0..cl

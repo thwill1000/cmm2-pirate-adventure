@@ -1,6 +1,6 @@
-' Scott Adams Adventure Game Interpreter for Maximite
-' MMBasic port (c) Thomas Hugo Williams 2020
-' Original TRS-80 code (c) Scott Adams 1978
+' Scott Adams Adventure Game Interpreter for Colour Maximite 2
+' Original TRS-80 Level II BASIC code (c) Scott Adams 1978
+' MMBasic port for CMM2 by Thomas Hugo Williams 2020
 
 Option Explicit On
 Option Default Integer
@@ -29,6 +29,7 @@ Const VERB_DUMP_STATE = -4
 Const VERB_DEBUG_ON   = -5
 Const VERB_DEBUG_OFF  = -6
 Const VERB_FIXED_SEED = -7
+Const VERB_NONE       = -999
 
 Dim STORY$ = "pirate"
 
@@ -56,7 +57,7 @@ Sub main()
 
   Do
     state = STATE_CONTINUE
-    show_intro(FIL.PROG_DIR$ + "/" + STORY$ + ".title")
+    show_intro()
     If state = STATE_CONTINUE Then game_loop()
     con.close()
   Loop While state <> STATE_QUIT
@@ -67,22 +68,23 @@ End Sub
 
 Sub show_intro(f$)
   Local i, k$
-  Local sp$ = Space$(24)
 
   Cls
   con.lines = 0
   Colour RGB(White)
-  con.print_file(f$)
-'  con.println("   Scott Adams Adventure Interpreter for Colour Maximite 2")
-'  con.println("                (c) Thomas Hugo Williams 2020")
+  con.print_file(FIL.PROG_DIR$ + "/" + STORY$ + ".tit", 1)
   Colour RGB(Green)
   con.println()
-  con.println(sp$ + "S  Start the game")
-  con.println(sp$ + "R  Restore a saved game")
-  con.println(sp$ + "C  Show credits")
-  con.println(sp$ + "I  Instructions on how to play")
-  con.println(sp$ + "Q  Quit")
+  con.println("S  Start the game             ", 1)
+  con.println("R  Restore a saved game       ", 1)
+  con.println("C  Show credits               ", 1)
+  con.println("I  Instructions on how to play", 1)
+  con.println("Q  Quit                       ", 1)
   con.println()
+  con.println("Adventure Game Interpreter for Colour Maximite 2", 1)
+  con.println("Version 1.0", 1)
+  con.println("by Thomas Hugo Williams 2020", 1)
+
 
   Do While Inkey$ <> "" : Loop
   Do
@@ -99,9 +101,39 @@ Sub show_intro(f$)
 End Sub
 
 Sub show_credits()
+  Cls
+  con.lines = 0
+  Colour RGB(White)
+  con.println()
+  con.println("CREDITS", 1)
+  con.println("=======", 1)
+  con.println()
+  Colour RGB(Green)
+  con.print_file(FIL.PROG_DIR$ + "/" + STORY$ + ".cre", 1)
+  con.println()
+  Colour RGB(White)
+  con.println("Press any key to continue", 1)
+  Colour RGB(Green)
+  Do While Inkey$ <> "" : Loop
+  Do While Inkey$ = "" : Loop
 End Sub
 
 Sub show_instructions()
+  Cls
+  con.lines = 0
+  Colour RGB(White)
+  con.println()
+  con.println("HOW TO PLAY", 1)
+  con.println("===========", 1)
+  con.println()
+  Colour RGB(Green)
+  con.print_file(FIL.PROG_DIR$ + "/" + STORY$ + ".ins", 1)
+  con.println()
+  Colour RGB(White)
+  con.println("Press any key to continue", 1)
+  Colour RGB(Green)
+  Do While Inkey$ <> "" : Loop
+  Do While Inkey$ = "" : Loop
 End Sub
 
 Sub reset_state()
@@ -254,7 +286,7 @@ Sub do_actions(verb, noun, nstr$)
   Select Case result
     Case ACTION_UNKNOWN : con.println("I don't understand your command.")
     Case ACTION_NOT_YET : con.println("I can't do that yet.")
-    Case Else :           If con.lines = 0 Then con.println("OK.")
+    Case Else :           If con.lines = 0 And state = STATE_CONTINUE Then con.println("OK.")
   End Select
 
 End Sub
@@ -463,8 +495,8 @@ Sub do_command(a, cmd)
     Case 63
       ' FINI
       ' Tell the player the game is over and ask if they want to play again.
-      Local s$ = prompt$("The game is now over, would you like to play again ? ")
-      If LCase$(Left$(s$, 1)) = "n" Then state = STATE_QUIT Else state = STATE_RESTART
+      Local s$ = prompt$("The game is now over, would you like to play again [Y|n]? ")
+      If LCase$(s$) = "n" Then state = STATE_QUIT Else state = STATE_RESTART
 
     Case 64
       ' DspRM
@@ -486,7 +518,7 @@ Sub do_command(a, cmd)
       con.print("I've stored " + Str$(x) + " treasures. On a scale of 0 to 100 that rates a ")
       con.println(Str$(Int(x/tt*100)) + ".")
       If x = tt Then
-        con.println("Well done.")
+        con.println("WELL DONE !!!")
         do_command(a, 63)
       EndIf
 
@@ -589,7 +621,7 @@ Sub prompt_for_command(verb, noun, nstr$)
   verb = 0
   Do While verb <= 0
     If con.count = 1 Then con.println()
-    s$ = prompt$("Tell me what to do ? ", 1)
+    s$ = prompt$("What shall I do ? ", 1)
     parse(s$, verb, noun, nstr$)
     If verb < 0 Then
       do_meta_command(verb)
@@ -611,6 +643,7 @@ Sub do_meta_command(verb)
   Local _
 
   Select Case verb
+    Case VERB_NONE       : ' do nothing, user will be prompted for command again.
     Case VERB_RECORD_ON  : record_on()
     Case VERB_RECORD_OFF : record_off()
     Case VERB_REPLAY_ON  : replay_on()
@@ -650,24 +683,33 @@ Sub parse(s$, verb, noun, nstr$)
   Do While Mid$(s$, p, 1) = " " : p = p + 1 : Loop
   nstr$ = LCase$(Mid$(s$, p, Len(s$) - p + 1))
 
+  If vstr$ = "" Then verb = VERB_NONE : Exit Sub
+
   verb = lookup_meta_command(vstr$, nstr$)
   If verb <> 0 Then Exit Sub
 
-  verb = lookup_word(Left$(vstr$, ln), 0)
-  noun = lookup_word(Left$(nstr$, ln), 1)
-
   ' Hack to allow use of common abbreviations, and avoid typing 'go'.
-  If verb = 0 Then
-    Select Case vstr$
-      Case "n", "north" : verb = 1 : noun = 1
-      Case "s", "south" : verb = 1 : noun = 2
-      Case "e", "east"  : verb = 1 : noun = 3
-      Case "w", "west"  : verb = 1 : noun = 4
-      Case "u", "up"    : verb = 1 : noun = 5
-      Case "d", "down"  : verb = 1 : noun = 6
-      Case "i"          : verb = 25
+  If nstr$ = "" Then
+    Select Case vstr$:
+      Case "n", "north" : vstr$ = "go" : nstr$ = "north"
+      Case "s", "south" : vstr$ = "go" : nstr$ = "south"
+      Case "e", "east"  : vstr$ = "go" : nstr$ = "east"
+      Case "w", "west"  : vstr$ = "go" : nstr$ = "west"
+      Case "u", "up"    : vstr$ = "go" : nstr$ = "up"
+      Case "d", "down"  : vstr$ = "go" : nstr$ = "down"
+      Case "i"          : vstr$ = "inventory"
+      Case "q"          : vstr$ = "quit"
+      Case "save"       : vstr$ = "save" : nstr$ = "game"
     End Select
   EndIf
+
+  If Left$(vstr$, ln) = Left$("quit", ln) Then
+    Local pr$ = prompt$("Are you sure you want to quit [y|N]? ")
+    If LCase$(pr$) <> "y" Then verb = VERB_NONE : Exit Sub
+  EndIf
+
+  verb = lookup_word(Left$(vstr$, ln), 0)
+  noun = lookup_word(Left$(nstr$, ln), 1)
 
   If noun <> 0 Then
     nstr$ = LCase$(nv_str$(noun, 1)) ' to use correct synonym

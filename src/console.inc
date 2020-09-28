@@ -1,4 +1,4 @@
-' Copyright (c) 2020 Thomas Hugo Williams
+' Copyright (c) 2019-20 Thomas Hugo Williams
 ' For Colour Maximite 2, MMBasic 5.05
 
 Dim con.buf$   ' console write buffer
@@ -114,19 +114,41 @@ Sub con.endl()
   con.x = 1
 End Sub
 
-Sub con.println(s$)
-  If Len(s$) > 0 Then con.print(s$)
+Sub con.println(s$, center)
+
+  If Len(s$) > 0 Then
+    If center Then
+      If con.x <> 1 Then Error "Cannot center text unless on a new line."
+      If Len(s$) < CON.WIDTH Then con.print(Space$((CON.WIDTH - Len(s$)) \ 2) + s$)
+    Else
+      con.print(s$)
+    EndIf
+  EndIf
+
   con.endl()
 End Sub
 
 ' Echos the contents of a (hopefully) text file to the console.
-Sub con.print_file(f$)
-  Local s$
+Sub con.print_file(f$, center)
+  Local s$, w
+
+  If center Then
+    Open f$ For Input As #1
+    Do
+      Line Input #1, s$
+      w = Max(w, Len(s$))
+    Loop While Not Eof(#1)
+    Close #1
+  EndIf
 
   Open f$ For Input As #1
   Do
     Line Input #1, s$
-    con.println(s$)
+    If center Then
+      con.println(s$ + Space$(w - Len(s$)), center)
+    Else
+      con.println(s$)
+    EndIf
   Loop While Not Eof(#1)
   Close #1
 End Sub
