@@ -14,7 +14,7 @@ Dim lt ' Time limit
 Dim ml ' Highest message number
 Dim tr ' Treasure room
 
-Sub dat.read(f$)
+Sub adv.read(f$)
   Open f$ For Input AS 1
 
   Input #1, il, cl, nl, rl, mx, ar, tt, ln, lt, ml, tr

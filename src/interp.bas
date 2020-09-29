@@ -5,8 +5,8 @@
 Option Explicit On
 Option Default Integer
 
+#Include "advdata.inc"
 #Include "console.inc"
-#Include "data.inc"
 #Include "debug.inc"
 #Include "file.inc"
 #Include "persist.inc"
@@ -42,7 +42,7 @@ Dim df ' dark flag
 Dim r  ' current room
 Dim sf ' status flags
 ' And ia() which contains the current object locations,
-' but is declared by data.read()
+' but is declared by adv.read()
 
 Dim state
 Dim debug
@@ -56,7 +56,7 @@ Pause 1000
 End
 
 Sub main()
-  dat.read(FIL.PROG_DIR$ + "/" + STORY$ + ".dat")
+  adv.read(FIL.PROG_DIR$ + "/" + STORY$ + ".dat")
 
   Do
     state = STATE_CONTINUE

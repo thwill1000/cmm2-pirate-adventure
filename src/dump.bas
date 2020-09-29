@@ -4,7 +4,7 @@
 Option Explicit On
 Option Default Integer
 
-#Include "data.inc"
+#Include "advdata.inc"
 #Include "debug.inc"
 #Include "strings.inc"
 
@@ -14,7 +14,7 @@ Dim in$ = Mm.CmdLine$ + ".dat"
 Dim out$ = Mm.CmdLine$ + ".dmp"
 Dim fd = 1
 
-dat.read(in$)
+adv.read(in$)
 
 Open out$ For Output As #fd
 Print #fd, "Data dump for '" in$ "'"
