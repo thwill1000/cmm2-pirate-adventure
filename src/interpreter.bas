@@ -87,7 +87,6 @@ Sub show_intro(f$)
   con.println("Version 1.0", 1)
   con.println("by Thomas Hugo Williams 2020", 1)
 
-
   Do While Inkey$ <> "" : Loop
   Do
     k$ = LCase$(Inkey$)
@@ -671,14 +670,17 @@ Sub parse(s$, verb, noun, nstr$)
   Local tmp$ = s$
   Local vstr$
 
-  verb = 0
-  noun = 0
-
   vstr$ = LCase$(str.next_token$(tmp$))
   nstr$ = LCase$(str.next_token$(tmp$))
-  If str.next_token$(tmp$) <> "" Then verb = VERB_TOO_MANY : Exit Sub
 
+  ' Handle empty input.
   If vstr$ = "" Then verb = VERB_NONE : Exit Sub
+
+  ' Ignore input beginning with '#', used for comments in script files.
+  If Left$(vstr$, 1) = "#" Then verb = VERB_NONE : Exit Sub
+
+  ' Reject commands of more than two words.
+  If str.next_token$(tmp$) <> "" Then verb = VERB_TOO_MANY : Exit Sub
 
   verb = lookup_meta_command(vstr$, nstr$)
   If verb <> 0 Then Exit Sub

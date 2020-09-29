@@ -227,8 +227,4 @@ Sub replay_on()
   con.println("Replaying from '" + f$ + "' ...")
 
   con.open_in(3, f$)
-
-  ' Discard the first two lines which should contain the timestamp and script name.
-  Line Input #3, s$
-  Line Input #3, s$
 End Sub
