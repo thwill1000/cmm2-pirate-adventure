@@ -6,6 +6,7 @@ Option Default Integer
 
 #Include "data.inc"
 #Include "debug.inc"
+#Include "strings.inc"
 
 Cls
 

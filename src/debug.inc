@@ -62,25 +62,17 @@ Sub dbg.dump_action(fd, i)
     v$ = dbg.get_verb$(verb)
   End If
 
-  Print #fd, rpad$(Str$(i) + ":", 6);
-  Print #fd, rpad$(v$, 6);
-  Print #fd, rpad$(n$, 6);
+  Print #fd, str.rpad$(Str$(i) + ":", 6);
+  Print #fd, str.rpad$(v$, 6);
+  Print #fd, str.rpad$(n$, 6);
   For j = 0 To 4
-    Print #fd, rpad$(dbg.get_cond$(cond(j, 0), cond(j, 1)), 9);
+    Print #fd, str.rpad$(dbg.get_cond$(cond(j, 0), cond(j, 1)), 9);
   Next j
   For j = 0 To 3
-    Print #fd, rpad$(dbg.get_cmd$(cmd(j)), 8);
+    Print #fd, str.rpad$(dbg.get_cmd$(cmd(j)), 8);
   Next j
   Print #fd
 End Sub
-
-Function rpad$(s$, x)
-  If Len(s$) < x Then
-    rpad$ = s$ + Space$(x - Len(s$))
-  Else
-    rpad$ = s$
-  EndIf
-End Function
 
 Function dbg.get_cond$(code, num)
   Local s$
@@ -158,7 +150,7 @@ Sub dbg.dump_vocab(fd)
   Print #fd
 
   For i = 0 To nl
-    Print #fd, rpad$(Str$(i) + ":", 6) rpad$(nv_str$(i, 0), ln + 3) nv_str$(i, 1)
+    Print #fd, str.rpad$(Str$(i) + ":", 6) str.rpad$(nv_str$(i, 0), ln + 3) nv_str$(i, 1)
   Next i
 End Sub
 
@@ -174,7 +166,7 @@ Sub dbg.dump_rooms(fd)
     If s$ = "" Then
       If i = 0 Then s$ = "<storeroom>" Else s$ = "<empty>"
     End If
-    Print #fd, rpad$(Str$(i) + ":", 6) s$
+    Print #fd, str.rpad$(Str$(i) + ":", 6) s$
     Print #fd, "      Exits: ";
     count = 0
     For j = 0 To 5
@@ -205,7 +197,7 @@ Sub dbg.dump_messages(fd)
   For i = 0 To ml
     s$ = ms$(i)
     If s$ = "" Then s$ = "<empty>"
-    Print #fd, rpad$(Str$(i) + ":", 6) s$
+    Print #fd, str.rpad$(Str$(i) + ":", 6) s$
   Next i
 End Sub
 
@@ -219,8 +211,6 @@ Sub dbg.dump_objects(fd)
   For i = 0 To il
     s$ = ia_str$(i)
     If s$ = "" Then s$ = "<empty>"
-    Print #fd, rpad$(Str$(i) + ":", 6) rpad$(Str$(ia(i)), 6) s$
+    Print #fd, str.rpad$(Str$(i) + ":", 6) str.rpad$(Str$(ia(i)), 6) s$
   Next i
 End Sub
-
-

@@ -10,6 +10,7 @@ Option Default Integer
 #Include "debug.inc"
 #Include "file.inc"
 #Include "persist.inc"
+#Include "strings.inc"
 
 CON.WIDTH = 80
 
