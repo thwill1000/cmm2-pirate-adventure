@@ -7,7 +7,6 @@ Option Default Integer
 
 #Include "advdata.inc"
 #Include "console.inc"
-#Include "debug.inc"
 #Include "file.inc"
 #Include "persist.inc"
 #Include "strings.inc"
