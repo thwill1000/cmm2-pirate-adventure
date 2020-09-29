@@ -22,15 +22,16 @@ Const ACTION_PERFORMED = 3
 Const ACTION_UNKNOWN   = 4
 Const ACTION_NOT_YET   = 5
 
-' Verb id's for meta commands.
-Const VERB_RECORD_ON  = -1
-Const VERB_RECORD_OFF = -2
-Const VERB_REPLAY_ON  = -3
-Const VERB_DUMP_STATE = -4
-Const VERB_DEBUG_ON   = -5
-Const VERB_DEBUG_OFF  = -6
-Const VERB_FIXED_SEED = -7
-Const VERB_NONE       = -999
+' Hardcoded Verb id's.
+Const VERB_NONE       = -1
+Const VERB_TOO_MANY   = -2
+Const VERB_RECORD_ON  = -3
+Const VERB_RECORD_OFF = -4
+Const VERB_REPLAY_ON  = -5
+Const VERB_DUMP_STATE = -6
+Const VERB_DEBUG_ON   = -7
+Const VERB_DEBUG_OFF  = -8
+Const VERB_FIXED_SEED = -9
 
 Dim STORY$ = "pirate"
 
@@ -617,18 +618,27 @@ Function pseudo%(range%)
 End Function
 
 Sub prompt_for_command(verb, noun, nstr$)
-  Local s$
+  Local s$, _
 
-  verb = 0
-  Do While verb <= 0
+  Do
     If con.count = 1 Then con.println()
     s$ = prompt$("What shall I do ? ", 1)
     parse(s$, verb, noun, nstr$)
-    If verb < 0 Then
-      do_meta_command(verb)
-    ElseIf verb = 0 Then
-      con.println("You use word(s) I don't know!")
-    EndIf
+
+    Select Case verb
+      Case 0               : con.println("You use word(s) I don't know!")
+      Case VERB_NONE       : ' Do nothing, user will be prompted for command again.
+      Case VERB_TOO_MANY   : con.println("I only understand two word commands!")
+      Case VERB_RECORD_ON  : record_on()
+      Case VERB_RECORD_OFF : record_off()
+      Case VERB_REPLAY_ON  : replay_on()
+      Case VERB_DUMP_STATE : print_state()
+      Case VERB_DEBUG_ON   : con.println("OK.") : debug = 1
+      Case VERB_DEBUG_OFF  : con.println("OK.") : debug = 0
+      Case VERB_FIXED_SEED : con.println("OK.") : _ = pseudo%(-7)
+      Case Else            : Exit Do ' Handle 'verb' in calling code.
+    End Select
+
   Loop
 
 End Sub
@@ -639,22 +649,6 @@ Function prompt$(s$, echo)
   prompt$ = con.in$("", echo)
   Colour RGB(Green)
 End Function
-
-Sub do_meta_command(verb)
-  Local _
-
-  Select Case verb
-    Case VERB_NONE       : ' do nothing, user will be prompted for command again.
-    Case VERB_RECORD_ON  : record_on()
-    Case VERB_RECORD_OFF : record_off()
-    Case VERB_REPLAY_ON  : replay_on()
-    Case VERB_DUMP_STATE : print_state()
-    Case VERB_DEBUG_ON   : con.println("OK.") : debug = 1
-    Case VERB_DEBUG_OFF  : con.println("OK.") : debug = 0
-    Case VERB_FIXED_SEED : con.println("OK.") : _ = pseudo%(-7)
-    Case Else            : Error "Unexpected meta command: " + Str$(verb)
-  End Select
-End Sub
 
 Sub print_state()
   con.println()
@@ -674,15 +668,15 @@ Sub print_state()
 End Sub
 
 Sub parse(s$, verb, noun, nstr$)
-  Local p, vstr$
+  Local tmp$ = s$
+  Local vstr$
 
-  verb = 0 : noun = 0
+  verb = 0
+  noun = 0
 
-  p = InStr(s$, " ")
-  If p < 1 Then p = Len(s$) + 1
-  vstr$ = LCase$(Left$(s$, p - 1))
-  Do While Mid$(s$, p, 1) = " " : p = p + 1 : Loop
-  nstr$ = LCase$(Mid$(s$, p, Len(s$) - p + 1))
+  vstr$ = LCase$(str.next_token$(tmp$))
+  nstr$ = LCase$(str.next_token$(tmp$))
+  If str.next_token$(tmp$) <> "" Then verb = VERB_TOO_MANY : Exit Sub
 
   If vstr$ = "" Then verb = VERB_NONE : Exit Sub
 
