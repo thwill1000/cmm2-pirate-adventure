@@ -51,7 +51,7 @@ Dim ip ' action parameter pointer
 
 Mode 2
 main()
-Pause 1000
+Pause 2000
 End
 
 Sub main()
@@ -454,7 +454,10 @@ Sub do_command(a, cmd)
       ' Set the darkness flag-bit (15).
       ' It will be dark if the artificial light source is not available,
       ' so this should be followed by a DspRM (64) command.
-      df = 1 ' TODO: this isn't a flag bit ! difference between interpreter versions ?
+      df = 1
+      ' TODO: 'df' is not flag-bit 15.
+      '       The incorrect comment probably refer to a later version of the
+      '       original Scott Adams interpreter.
 
     Case 57
       ' DAY
@@ -491,7 +494,9 @@ Sub do_command(a, cmd)
       ' or went to the current room.
       x = get_parameter(a)
       ia(x) = get_parameter(a)
-      ' TODO: This isn't automatically displaying the room ?
+      ' TODO: This isn't automatically displaying the room.
+      '       The incorrect comment probably refer to a later version of the
+      '       original Scott Adams interpreter.
 
     Case 63
       ' FINI
