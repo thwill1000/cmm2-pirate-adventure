@@ -202,6 +202,7 @@ Function script_file$(i)
 End Function
 
 Sub record_off()
+  If con.fd_out = 0 Then con.println("A script is not being recorded!") : Exit Sub
   con.close_out()
   con.println("Recording stopped.")
 End Sub
@@ -227,4 +228,10 @@ Sub replay_on()
   con.println("Replaying from '" + f$ + "' ...")
 
   con.open_in(3, f$)
+End Sub
+
+Sub replay_off()
+  If con.fd_in = 0 Then con.println("A script is not being replayed!") : Exit Sub
+  con.close_in()
+  con.println("Replaying stopped.")
 End Sub

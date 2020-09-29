@@ -28,10 +28,11 @@ Const VERB_TOO_MANY   = -2
 Const VERB_RECORD_ON  = -3
 Const VERB_RECORD_OFF = -4
 Const VERB_REPLAY_ON  = -5
-Const VERB_DUMP_STATE = -6
-Const VERB_DEBUG_ON   = -7
-Const VERB_DEBUG_OFF  = -8
-Const VERB_FIXED_SEED = -9
+Const VERB_REPLAY_OFF = -6
+Const VERB_DUMP_STATE = -7
+Const VERB_DEBUG_ON   = -8
+Const VERB_DEBUG_OFF  = -9
+Const VERB_FIXED_SEED = -10
 
 Dim STORY$ = "pirate"
 
@@ -61,11 +62,11 @@ Sub main()
     state = STATE_CONTINUE
     show_intro()
     If state = STATE_CONTINUE Then game_loop()
-    con.close()
+    con.close_all()
   Loop While state <> STATE_QUIT
 
   con.println("Goodbye!")
-  con.close()
+  con.close_all()
 End Sub
 
 Sub show_intro(f$)
@@ -631,6 +632,7 @@ Sub prompt_for_command(verb, noun, nstr$)
       Case VERB_RECORD_ON  : record_on()
       Case VERB_RECORD_OFF : record_off()
       Case VERB_REPLAY_ON  : replay_on()
+      Case VERB_REPLAY_OFF : replay_off()
       Case VERB_DUMP_STATE : print_state()
       Case VERB_DEBUG_ON   : con.println("OK.") : debug = 1
       Case VERB_DEBUG_OFF  : con.println("OK.") : debug = 0
@@ -727,9 +729,10 @@ Function lookup_meta_command(vstr$, nstr$)
       If nstr$ = "on" Or nstr$ = "" Then verb = VERB_RECORD_ON
       If nstr$ = "off" Then verb = VERB_RECORD_OFF
     Case "*replay"
-      ' Note that "*replay off" makes no sense,
-      ' replaying ends when the script being replayed ends.
       If nstr$ = "on" Or nstr$ = "" Then verb = VERB_REPLAY_ON
+      ' "*replay off" only makes sense if put in a script file
+      ' so as to stop it from being read to its end.
+      If nstr$ = "off" Then verb = VERB_REPLAY_OFF
     Case "*seed"
       If nstr$ = "" Then verb = VERB_FIXED_SEED
     Case "*state"

@@ -153,21 +153,29 @@ Sub con.print_file(f$, center)
   Close #1
 End Sub
 
-Sub con.close()
-  If con.fd_in <> 0 Then Close #con.fd_in
-  If con.fd_out <> 0 Then Close #con.fd_out
-  con.fd_in = 0
-  con.fd_out = 0
-End Sub
-
 Sub con.open_in(fd, f$)
-  If con.fd_in <> 0 Then Close #con.fd_in
+  con.close_in()
   Open f$ For Input As #fd
   con.fd_in = fd
 End Sub
 
+Sub con.close_in()
+  If con.fd_in <> 0 Then Close #con.fd_in
+  con.fd_in = 0
+End Sub
+
 Sub con.open_out(fd, f$)
-  If con.fd_out <> 0 Then Close #con.fd_out
+  con.close_out()
   Open f$ For Output As #fd
   con.fd_out = fd
+End Sub
+
+Sub con.close_out()
+  If con.fd_out<> 0 Then Close #con.fd_out
+  con.fd_out = 0
+End Sub
+
+Sub con.close_all()
+  con.close_in()
+  con.close_out()
 End Sub
