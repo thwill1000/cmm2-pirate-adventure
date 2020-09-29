@@ -65,12 +65,15 @@ Sub dbg.dump_action(fd, i)
   Print #fd, str.rpad$(Str$(i) + ":", 6);
   Print #fd, str.rpad$(v$, 6);
   Print #fd, str.rpad$(n$, 6);
-  For j = 0 To 4
-    Print #fd, str.rpad$(dbg.get_cond$(cond(j, 0), cond(j, 1)), 9);
-  Next j
-  For j = 0 To 3
-    Print #fd, str.rpad$(dbg.get_cmd$(cmd(j)), 8);
-  Next j
+  Print #fd, str.rpad$(dbg.get_cond$(cond(0, 0), cond(0, 1)), 9);
+  Print #fd, str.rpad$(dbg.get_cond$(cond(1, 0), cond(1, 1)), 9);
+  Print #fd, str.rpad$(dbg.get_cond$(cond(2, 0), cond(2, 1)), 9);
+  Print #fd, str.rpad$(dbg.get_cond$(cond(3, 0), cond(3, 1)), 9);
+  Print #fd, str.rpad$(dbg.get_cond$(cond(4, 0), cond(4, 1)), 9);
+  Print #fd, str.rpad$(dbg.get_cmd$(cmd(0)), 8);
+  Print #fd, str.rpad$(dbg.get_cmd$(cmd(1)), 8);
+  Print #fd, str.rpad$(dbg.get_cmd$(cmd(2)), 8);
+  Print #fd, dbg.get_cmd$(cmd(3));
   Print #fd
 End Sub
 

@@ -10,8 +10,8 @@ Option Default Integer
 
 Cls
 
-Dim in$ = "pirate.dat"
-Dim out$ = "pirate.dmp"
+Dim in$ = Mm.CmdLine$ + ".dat"
+Dim out$ = Mm.CmdLine$ + ".dmp"
 Dim fd = 1
 
 dat.read(in$)
@@ -23,7 +23,3 @@ dbg.dump(fd)
 Close #fd
 
 End
-
-
-
-
