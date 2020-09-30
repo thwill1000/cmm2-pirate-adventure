@@ -1,14 +1,16 @@
 "Pirate Adventure" is (c) 1978 Scott Adams and is distributed with his
 kind permission.
 
-In particular there are two files which should not be reproduced
-without permission:
+The following files should not be reproduced without permission of the
+copyright holders:
 
-  pirate.dat       -  (c) 1978 Scott Adams
-  interpreter.bas  -  (c) 1978 Scott Adams
-                      (c) 2020 Thomas Hugo Williams
+  advdata.bas -  (c) 1978 Scott Adams
+                 (c) 2020 Thomas Hugo Williams
+  inter.bas   -  (c) 1978 Scott Adams
+                 (c) 2020 Thomas Hugo Williams
+  pirate.dat  -  (c) 1978 Scott Adams
 
-All other contents of this program is (c) Thomas Hugo Williams 2019-20
+All the other files of this program are (c) Thomas Hugo Williams 2019-20
 and licensed under the MIT license:
 
 MIT License

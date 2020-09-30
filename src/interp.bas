@@ -86,7 +86,6 @@ Sub show_intro(f$)
   con.println()
   con.println("Adventure Game Interpreter for Colour Maximite 2", 1)
   con.println("Version 1.0", 1)
-  con.println("by Thomas Hugo Williams 2020", 1)
 
   Do While Inkey$ <> "" : Loop
   Do
