@@ -256,7 +256,7 @@ Sub fil.get_files(d$, pattern$, type$, out$())
     f$ = Dir$()
   Loop
 
-  If i% > base% Then
+  If i% > base_% Then
     Sort out$(), , &b10, base_%, i% - base_%
   EndIf
 End Sub
