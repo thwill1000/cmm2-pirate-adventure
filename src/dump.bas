@@ -1,31 +1,55 @@
-' Copyright (c) 2020 Thomas Hugo Williams
-' For Colour Maximite 2, MMBasic 5.05
+' Write human-readable dump of adventure data files in ScottFree format.
+' For Colour Maximite 2, MMBasic 5.06
+' Copyright (c) 2020-2021 Thomas Hugo Williams
+' Developed with the assistance of Bill McKinley
 
 Option Explicit On
 Option Default Integer
 
-#Include "advdata.inc"
-#Include "strings.inc"
+#Include "splib/system.inc"
+#Include "splib/array.inc"
+#Include "splib/list.inc"
+#Include "splib/string.inc"
+#Include "splib/file.inc"
+#Include "advent.inc"
 
 main()
 End
 
 Sub main()
-  Local in$ = Mm.CmdLine$ + ".dat"
-  Local out$ = Mm.CmdLine$ + ".dmp"
-  Local fd = 1
+  If str.trim$(Mm.CmdLine$) = "*" Then
+    dump_all()
+  Else
+    dump_file(advent.find$())
+  EndIf
+End Sub
 
-  Cls
-  adv.read(in$)
+Sub dump_all()
+  Local t% = Timer
+  Local f$ = fil.find$(advent.DIR$, "*.dat", "File")
+  Do While f$ <> ""
+    dump_file(f$)
+    f$ = fil.find$()
+  Loop
+  Print Str$((Timer - t%) / 1000) + " s"
+End Sub
+
+Sub dump_file(in$)
+  Const fd = 1
+  Local out$ = fil.trim_extension$(in$) + ".dmp"
+
+  Print "Reading '" in$ "' ... ";
+  advent.read(in$)
+  Print "OK"
+  Print "Writing '" out$ "' ... ";
   Open out$ For Output As #fd
   Print #fd, "Data dump for '" in$ "'"
   Print #fd
   dump(fd)
   Close #fd
+  Print "OK"
+  advent.clear()
 End Sub
-
-' Copyright (c) 2020 Thomas Hugo Williams
-' For Colour Maximite 2, MMBasic 5.05
 
 Sub dump(fd)
   Print #fd, "Max object index:       " Str$(il)
@@ -86,7 +110,7 @@ Sub dump_action(fd, i)
   Else
     n$ = get_noun$(noun)
     v$ = get_verb$(verb)
-  End If
+  EndIf
 
   Print #fd, str.rpad$(Str$(i) + ":", 6);
   Print #fd, str.rpad$(v$, 6);
@@ -126,17 +150,29 @@ Function get_cond$(code, num)
     Case 17 : s$ = "ORIG"
     Case 18 : s$ = "-ORIG"
     Case 19 : s$ = "CT="
-    Case Else: s$ = "Huh?"
+    Case Else : s$ = "<Unknown: " + Str$(code) + ">"
   End Select
   get_cond$ = s$ + " " + Str$(num)
 End Function
 
 Function get_verb$(v)
-  get_verb$ = nv_str$(v, 0)
+  If v > Bound(nv_str$(), 1) Then
+    Print
+    Print "  WARNING: unknown verb" v
+    get_verb$ = "<" + Str$(v) + ">"
+  Else
+    get_verb$ = nv_str$(v, 0)
+  EndIf
 End Function
 
 Function get_noun$(n)
-  get_noun$ = nv_str$(n, 1)
+  If n > Bound(nv_str$(), 1) Then
+    Print
+    Print "  WARNING: unknown noun" n
+    get_noun$ = "<" + Str$(n) + ">"
+  Else
+    get_noun$ = nv_str$(n, 1)
+  EndIf
 End Function
 
 Function get_cmd$(c)
@@ -144,29 +180,45 @@ Function get_cmd$(c)
   Select Case c
     Case 0 : s$ = "0"
     Case 1 To 51 : s$ = "MSG:" + Str$(c)
-    Case 52: s$ = "GETx"
-    Case 53: s$ = "DROPx"
-    Case 54: s$ = "GOTOy"
-    Case 55: s$ = "x->RM0"
-    Case 56: s$ = "NIGHT"
-    Case 57: s$ = "DAY"
-    Case 58: s$ = "SETz"
-    Case 59: s$ = "x->RM0" ' same as 55
-    Case 60: s$ = "CLRz"
-    Case 61: s$ = "DEAD"
-    Case 62: s$ = "x->y"
-    Case 63: s$ = "FINI"
-    Case 64: s$ = "DspRM"
-    Case 65: s$ = "SCORE"
-    Case 66: s$ = "INV"
-    Case 67: s$ = "SET0"
-    Case 68: s$ = "CLR0"
-    Case 69: s$ = "FILL"
-    Case 70: s$ = "CLS"
-    Case 71: s$ = "SAVEz"
-    Case 72: s$ = "EXx,x"
+    Case 52 : s$ = "GETx"
+    Case 53 : s$ = "DROPx"
+    Case 54 : s$ = "GOTOy"
+    Case 55 : s$ = "x->RM0"
+    Case 56 : s$ = "NIGHT"
+    Case 57 : s$ = "DAY"
+    Case 58 : s$ = "SETz"
+    Case 59 : s$ = "x->RM0" ' same as 55
+    Case 60 : s$ = "CLRz"
+    Case 61 : s$ = "DEAD"
+    Case 62 : s$ = "x->y"
+    Case 63 : s$ = "FINI"
+    Case 64 : s$ = "DspRM"
+    Case 65 : s$ = "SCORE"
+    Case 66 : s$ = "INV"
+    Case 67 : s$ = "SET0"
+    Case 68 : s$ = "CLR0"
+    Case 69 : s$ = "FILL"
+    Case 70 : s$ = "CLS"
+    Case 71 : s$ = "SAVEz"
+    Case 72 : s$ = "EXx,x"
+    Case 73 : s$ = "CONT"
+    Case 74 : s$ = "AGETx"
+    Case 75 : s$ = "BYx<-x"
+    Case 76 : s$ = "DspRM"
+    Case 77 : s$ = "CT-1"
+    Case 78 : s$ = "DspCT"
+    Case 79 : s$ = "CT<-n"
+    Case 80 : s$ = "EXRM0"
+    Case 81 : s$ = "EXm,CT"
+    Case 82 : s$ = "CT+n"
+    Case 83 : s$ = "CT-n"
+    Case 84 : s$ = "SAYw"
+    Case 85 : s$ = "SAYwCR"
+    Case 86 : s$ = "SAYCR"
+    Case 87 : s$ = "EXc,CR"
+    Case 88 : s$ = "DELAY"
     Case 102 To 149 : s$ = "MSG:" + Str$(c - 50)
-    Case Else: s$ = "Huh?"
+    Case Else : s$ = "<Unknown: " + Str$(c) + ">"
   End Select
   get_cmd$ = s$
 End Function
@@ -194,7 +246,7 @@ Sub dump_rooms(fd)
     s$ = rs$(i)
     If s$ = "" Then
       If i = 0 Then s$ = "<storeroom>" Else s$ = "<empty>"
-    End If
+    EndIf
     Print #fd, str.rpad$(Str$(i) + ":", 6) s$
     Print #fd, "      Exits: ";
     count = 0
@@ -210,7 +262,7 @@ Sub dump_rooms(fd)
           Case 4 : Print #fd, "Up";
           Case 5 : Print #fd, "Down";
         End Select
-      End If
+      EndIf
     Next j
     If count = 0 Then Print #fd, "None" Else Print #fd
   Next i
@@ -234,7 +286,8 @@ Sub dump_objects(fd)
   Local i, s$
 
   Print #fd, "OBJECTS"
-  Print #fd, "-------"
+  Print #fd, "--------"
+  Print #fd, "No    Rm" ' Added this - Bill
   Print #fd
 
   For i = 0 To il

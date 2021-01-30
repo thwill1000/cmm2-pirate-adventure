@@ -1,18 +1,23 @@
-' Scott Adams Adventure Game Interpreter for Colour Maximite 2
-' Original TRS-80 Level II BASIC code (c) Scott Adams 1978
-' MMBasic port for CMM2 by Thomas Hugo Williams 2020
+' Scott Adams Adventure Game Interpreter
+' For Colour Maximite 2, MMBasic 5.06
+' Copyright (c) 2020-2021 Thomas Hugo Williams
+' Developed with the assistance of Bill McKinley
+' Based on original TRS-80 Level II BASIC code (c) 1978 Scott Adams
 
 Option Explicit On
 Option Default Integer
 
-#Include "advdata.inc"
+#Include "splib/system.inc"
+#Include "splib/array.inc"
+#Include "splib/list.inc"
+#Include "splib/string.inc"
+#Include "splib/file.inc"
+#Include "advent.inc"
 #Include "console.inc"
-#Include "file.inc"
 #Include "persist.inc"
-#Include "strings.inc"
-#Include "util.inc"
 
-CON.WIDTH = 80
+con.HEIGHT = 33
+con.WIDTH  = 80
 
 Const STATE_CONTINUE = 0
 Const STATE_QUIT     = 1
@@ -34,18 +39,21 @@ Const VERB_DEBUG_ON   = -8
 Const VERB_DEBUG_OFF  = -9
 Const VERB_FIXED_SEED = -10
 
-Dim STORY$ = "pirate"
-
 ' These global variables hold the current game state
-Dim lx ' light duration
-Dim df ' dark flag
-Dim r  ' current room
-Dim sf ' status flags
+Dim lx              ' light duration
+Dim df              ' dark flag
+Dim r               ' current room
+Dim sf              ' status flags
+Dim counter         ' main counter
+Dim alt_counter(7)  ' 8 alternate counters
+Dim alt_room(5)     ' 6 alternate room registers
 ' And ia() which contains the current object locations,
-' but is declared by adv.read()
+' but is declared by advent.read()
 
 Dim state
 Dim debug
+Dim continue_flag = 0 ' Flag that, when set will cause the next action(s) to be
+                      ' processed if they begin with both a verb and noun = 0.
 
 ' TODO: This shouldn't be global
 Dim ip ' action parameter pointer
@@ -53,10 +61,13 @@ Dim ip ' action parameter pointer
 Mode 2
 main()
 Pause 2000
+' Replaced the following line with END to make stand alone
+' we.end_program()
 End
 
 Sub main()
-  adv.read(FIL.PROG_DIR$ + "/" + STORY$ + ".dat")
+  Local f$ = advent.find$()
+  advent.read(f$)
 
   Do
     state = STATE_CONTINUE
@@ -65,29 +76,31 @@ Sub main()
     con.close_all()
   Loop While state <> STATE_QUIT
 
-  con.println("Goodbye!")
+  con.endl()
+  con.println("Goodbye!", 1)
   con.close_all()
 End Sub
 
-Sub show_intro(f$)
-  Local i, k$
+Sub show_intro()
+  Local f$ = fil.trim_extension$(advent.file$) + ".tit"
+  f$ = Choice(fil.exists%(f$), f$, fil.PROG_DIR$ + "/default.tit")
 
   Cls
   con.lines = 0
-  Colour RGB(White)
-  con.print_file(FIL.PROG_DIR$ + "/" + STORY$ + ".tit", 1)
-  Colour RGB(Green)
+  Colour Rgb(White)
+  con.print_file(f$, 1)
+  Colour Rgb(Green)
   con.println()
-  con.println("S  Start the game             ", 1)
+  con.println("S  Start a new game           ", 1)
   con.println("R  Restore a saved game       ", 1)
   con.println("C  Show credits               ", 1)
   con.println("I  Instructions on how to play", 1)
   con.println("Q  Quit                       ", 1)
   con.println()
-  con.println("Adventure Game Interpreter for Colour Maximite 2", 1)
-  con.println("Version 1.0", 1)
+  con.println("Version 2.0a", 1)
 
   Do While Inkey$ <> "" : Loop
+  Local k$
   Do
     k$ = LCase$(Inkey$)
     Select Case k$
@@ -99,40 +112,48 @@ Sub show_intro(f$)
       Case Else : k$ = ""
     End Select
   Loop Until k$ <> ""
+
+  con.lines = 0
 End Sub
 
 Sub show_credits()
+  Local f$ = fil.trim_extension$(advent.file$) + ".cre"
+  f$ = Choice(fil.exists%(f$), f$, fil.PROG_DIR$ + "/default.cre")
+
   Cls
   con.lines = 0
-  Colour RGB(White)
+  Colour Rgb(White)
   con.println()
   con.println("CREDITS", 1)
   con.println("=======", 1)
   con.println()
-  Colour RGB(Green)
-  con.print_file(FIL.PROG_DIR$ + "/" + STORY$ + ".cre", 1)
+  Colour Rgb(Green)
+  con.print_file(f$, 1)
   con.println()
-  Colour RGB(White)
+  Colour Rgb(White)
   con.println("Press any key to continue", 1)
-  Colour RGB(Green)
+  Colour Rgb(Green)
   Do While Inkey$ <> "" : Loop
   Do While Inkey$ = "" : Loop
 End Sub
 
 Sub show_instructions()
+  Local f$ = fil.trim_extension$(advent.file$) + ".ins"
+  f$ = Choice(fil.exists%(f$), f$, fil.PROG_DIR$ + "/default.ins")
+
   Cls
   con.lines = 0
-  Colour RGB(White)
+  Colour Rgb(White)
   con.println()
   con.println("HOW TO PLAY", 1)
   con.println("===========", 1)
   con.println()
-  Colour RGB(Green)
-  con.print_file(FIL.PROG_DIR$ + "/" + STORY$ + ".ins", 1)
+  Colour Rgb(Green)
+  con.print_file(f$, 1)
   con.println()
-  Colour RGB(White)
+  Colour Rgb(White)
   con.println("Press any key to continue", 1)
-  Colour RGB(Green)
+  Colour Rgb(Green)
   Do While Inkey$ <> "" : Loop
   Do While Inkey$ = "" : Loop
 End Sub
@@ -154,9 +175,9 @@ Sub game_loop()
   describe_room()
 
   Do
-    do_actions() ' handle automatic actions
-    prompt_for_command(verb, noun, nstr$)
-    do_actions(verb, noun, nstr$) ' handle player actions
+    do_automatic_actions()
+    If state = STATE_CONTINUE Then prompt_for_command(verb, noun, nstr$)
+    If state = STATE_CONTINUE Then do_player_actions(verb, noun, nstr$)
     If state = STATE_CONTINUE Then update_light()
   Loop While state = STATE_CONTINUE
 End Sub
@@ -171,7 +192,7 @@ Sub describe_room()
     Exit Sub
   EndIf
 
-  Colour RGB(White)
+  Colour Rgb(White)
 
   If Mm.Info(VPOS) > 0 Then con.println()
 '  Cls
@@ -201,10 +222,10 @@ Sub describe_room()
   con.print("Visible items: ")
   print_object_list(r, "None")
 
-  con.println("<" + String$(CON.WIDTH - 2, "-") + ">")
+  con.println("<" + String$(con.WIDTH - 2, "-") + ">")
   con.println()
 
-  Colour RGB(Green)
+  Colour Rgb(Green)
 
 End Sub
 
@@ -229,8 +250,38 @@ Sub print_object_list(rm, none$)
   con.println(".")
 End Sub
 
-Sub do_actions(verb, noun, nstr$)
-  Local a, an, av, process_action, result
+Sub do_automatic_actions()
+  Local a, av, an, process_action
+
+  continue_flag = 0
+
+  For a = 0 To cl
+    ' The 'verb' of an automatic action is zero,
+    ' If we reach a non-zero verb then we stop processing automatic actions.
+    av = Int(ca(a, 0) / 150)
+    If av <> 0 Then Exit Sub
+
+    ' The 'noun' of the automatic action.
+    ' If this is non-zero then we clear the CONTinue flag.
+    an = ca(a, 0) - av * 150
+    If an <> 0 Then continue_flag = 0
+
+    ' If the CONTinue flag is not set then 'noun' is the probability of the
+    ' action occurring.
+    If Not continue_flag Then
+      If sys.pseudo%(100) > an Then Continue For ' Did not occur, try the next action.
+    EndIf
+
+    If Not process_conditions(a) Then Continue For ' Conditions not passed, try the next action.
+
+    do_commands(a)
+  Next
+
+End Sub
+
+Sub do_player_actions(verb, noun, nstr$)
+
+  continue_flag = 0
 
   ' Handle "go <direction>"
   If verb = 1 And noun < 7 Then
@@ -238,48 +289,46 @@ Sub do_actions(verb, noun, nstr$)
     Exit Sub
   EndIf
 
-  result = ACTION_UNKNOWN
+  Local a, an, av, result = ACTION_UNKNOWN
 
-  For a = 0 to cl
+  For a = 0 To cl
     av = Int(ca(a, 0) / 150) ' action - verb
     an = ca(a, 0) - av * 150 ' action - noun
 
-    ' Stop processing automatic actions (verb == 0) when we reach the first
-    ' non-zero action verb.
-    If verb = 0 And av <> 0 Then Exit Sub
+    If continue_flag Then
+      ' If the CONTinue flag is set but the verb or noun is non-zero then the
+      ' player action is complete.
+      If (av <> 0) Or (an <> 0) Then Exit For
 
-    If av = 0 And verb = 0 Then
-      ' Automatic action, 'an' is the probability
-      process_action = pseudo%(100) <= an
-    ElseIf av = verb And (an = noun Or an = 0) Then
-      ' Verb and noun match, or action noun is 'ANY'
-      process_action = 1
-    Else
-      process_action = 0
+    ElseIf av <> verb Then
+      ' Verb doesn't match, try the next action.
+      Continue For
+
+    ElseIf (an <> 0) And (an <> noun) Then
+      ' Noun doesn't match (or isn't 'ANY'), try the next action.
+      Continue For
+
     EndIf
 
-    If process_action Then
-      If process_conditions(a) Then
-        do_commands(a)
-        result = ACTION_PERFORMED
-      Else
-        result = ACTION_NOT_YET
-      EndIf
-    EndIf
+    result = ACTION_NOT_YET
+    If Not process_conditions(a) Then Continue For ' Conditions not passed, try the next action.
 
-    ' Stop processing actions when a non-automatic action is performed.
-    If verb <> 0 And result = ACTION_PERFORMED Then Exit For
+    do_commands(a, nstr$)
+    result = ACTION_PERFORMED
 
-  Next a
+    ' Stop processing player actions when an action is performed and the CONTinue
+    ' flag is not set.
+    If Not continue_flag Then Exit For
+  Next
 
   ' Whilst the action table contains some specialist pickup and drop handling
   ' the general case is handled by this code.
   If result = ACTION_UNKNOWN Then
     If verb = 10 Then
-      do_get(nstr$)
+      do_get(noun, nstr$)
       result = ACTION_PERFORMED
     ElseIf verb = 18 Then
-      do_drop(nstr$)
+      do_drop(noun, nstr$)
       result = ACTION_PERFORMED
     EndIf
   EndIf
@@ -287,7 +336,7 @@ Sub do_actions(verb, noun, nstr$)
   Select Case result
     Case ACTION_UNKNOWN : con.println("I don't understand your command.")
     Case ACTION_NOT_YET : con.println("I can't do that yet.")
-    Case Else :           If con.lines = 0 And state = STATE_CONTINUE Then con.println("OK.")
+    Case Else           : If con.lines = 0 And state = STATE_CONTINUE Then con.println("OK.")
   End Select
 
 End Sub
@@ -308,7 +357,7 @@ Function process_conditions(a)
 End Function
 
 ' @param  a  current action index
-Sub do_commands(a)
+Sub do_commands(a, nstr$)
   Local cmd(3)
 
   ip = 0 ' reset parameter pointer
@@ -317,15 +366,15 @@ Sub do_commands(a)
   cmd(2) = Int(ca(a, 7) / 150)
   cmd(3) = ca(a, 7) - cmd(2) * 150
 
-  do_command(a, cmd(0))
-  do_command(a, cmd(1))
-  do_command(a, cmd(2))
-  do_command(a, cmd(3))
+  do_command(a, cmd(0), nstr$)
+  do_command(a, cmd(1), nstr$)
+  do_command(a, cmd(2), nstr$)
+  do_command(a, cmd(3), nstr$)
 End Sub
 
 Sub go_direction(noun)
   Local l = df
-  If l Then l = df And ia(9) <> R and ia(9) <> - 1
+  If l Then l = df And ia(9) <> r And ia(9) <> -1
   If l Then con.println("Dangerous to move in the dark!")
   If noun < 1 Then con.println("Give me a direction too.") : Exit Sub
   Local k = rm(r, noun - 1)
@@ -372,10 +421,10 @@ Function evaluate_condition(code, value)
       pass = (r <> value)
     Case 8
       ' Passes if numbered flag-bit set.
-      pass = (sf And Int(2^value + 0.5)) <> 0
+      pass = (sf And Int(2 ^ value + 0.5)) <> 0
     Case 9
       ' Passes if numbered flag-bit clear.
-      pass = (sf And Int(2^value + 0.5)) = 0
+      pass = (sf And Int(2 ^ value + 0.5)) = 0
     Case 10
       ' Passes if the player is carrying anything.
       For i = 0 To il
@@ -388,7 +437,8 @@ Function evaluate_condition(code, value)
         If ia(i) = -1 Then pass = 0 : Exit For
       Next i
     Case 12
-      ' Passes if object <number> is not available; i.e. not carried or in the current room.
+      ' Passes if object <value> is not available;
+      ' i.e. not carried or in the current room.
       pass = (ia(value) <> -1) And (ia(value) <> r)
     Case 13
       ' Passes if object <value> is not in the store room (0)
@@ -396,6 +446,21 @@ Function evaluate_condition(code, value)
     Case 14
       ' Passes if object <value> is in the store room (0)
       pass = (ia(value) = 0)
+    Case 15
+      ' Passes if counter <= the value.
+      pass = (counter <= value)
+    Case 16
+      ' Passes if counter > the value.
+      pass = (counter > value)
+    Case 17
+      ' Passes if the numbered object is is the room it started in.
+      pass = (ia(value) = i2(value))
+    Case 18
+      ' Passes if the numbered object is not in the room it started in.
+      pass = (ia(value) <> i2(value))
+    Case 19
+      ' Passes if the counter is equal to the value.
+      pass = (counter = value)
     Case Else
       Error "Unknown condition: " + Str$(code)
   End Select
@@ -404,7 +469,7 @@ Function evaluate_condition(code, value)
 End Function
 
 ' @param  a  current action index
-Sub do_command(a, cmd)
+Sub do_command(a, cmd, nstr$)
   Local i, p, x, y
 
   Select Case cmd
@@ -471,6 +536,10 @@ Sub do_command(a, cmd)
       p = get_parameter(a)
       sf = sf Or 1 << p
 
+  ' Case 59
+      ' x->RM
+      ' This command also moves the Par #1 object to room 0 (the storeroom), like command 55.
+
     Case 60
       ' CLRz
       ' Clear the Par #1 flag-bit.
@@ -501,10 +570,12 @@ Sub do_command(a, cmd)
     Case 63
       ' FINI
       ' Tell the player the game is over and ask if they want to play again.
+      If con.fd_out > 0 Then record_off()
+      If con.fd_in > 0 Then replay_off()
       Local s$ = prompt$("The game is now over, would you like to play again [Y|n]? ")
       If LCase$(s$) = "n" Then state = STATE_QUIT Else state = STATE_RESTART
 
-    Case 64
+    Case 64, 76
       ' DspRM
       ' Display the current room.
       ' This checks if the darkness flag-bit (15) is set and the artificial
@@ -522,10 +593,10 @@ Sub do_command(a, cmd)
         If ia(i) = tr And Left$(ia_str$(i), 1) = "*" Then x = x + 1
       Next i
       con.print("I've stored " + Str$(x) + " treasures. On a scale of 0 to 100 that rates a ")
-      con.println(Str$(Int(x/tt*100)) + ".")
+      con.println(Str$(Int(x / tt * 100)) + ".")
       If x = tt Then
         con.println("WELL DONE !!!")
-        do_command(a, 63)
+        do_command(a, 63, nstr$)
       EndIf
 
     Case 66
@@ -567,14 +638,130 @@ Sub do_command(a, cmd)
       ' This command exchanges the room locations of the Par #1 object and the
       ' Par #2 object. If the objects in the current room change, the new
       ' description will be displayed.
-      x = get_parameter(a) ' x = object 1
-      y = get_parameter(a) ' y = object 2
-      p = ia(x)           ' p = location of object 1
+      x = get_parameter(a)  ' x = object 1
+      y = get_parameter(a)  ' y = object 2
+      p = ia(x)             ' p = location of object 1
       ia(x) = ia(y)
       ia(y) = p
 
+    Case 73
+      ' CONT
+      ' This command sets a flag to allow more than four commands to be executed. When all the
+      ' commands in this action entry have been performed, the commands in the next action entry
+      ' will also be executed if the verb and noun are both zero. The condition fields of the new
+      ' action entry will contain the parameters for the commands in the new action entry. When an
+      ' action entry with a non-zero verb or noun is encountered, the continue flag is cleared.
+      continue_flag = 1
+
+    Case 74
+      ' AGETx
+      ' Always pick up the Par #1 object, even if that would cause the carry limit to be exceeded.
+      ' Otherwise, this is like command 52, GETx.
+      p = get_parameter(a)
+      ia(p) = -1
+
+    Case 75
+      ' BYx<-x
+      ' Put the Par #1 object in the same place as the Par #2 object. If the Par #2 object is being
+      ' carried, this will pick up the Par #1 object too, regardless of the carry limit.
+      ' TODO: Is it necessary to explicitly display the room again if this changes the objects in
+      '       the current room, or should that have been explicitly encoded in the action list?
+      x = get_parameter(a) ' x = object 1
+      y = get_parameter(a) ' y = object 2
+      ia(x) = ia(y)
+
+  '  Case 76
+      ' DspRM
+      ' This displays the current room, just like command 64.
+
+    Case 77
+      ' CT-1
+      ' This subtracts 1 from the counter value.
+      counter = counter - 1
+
+    Case 78
+      ' DspCT
+      ' This displays the current value of the counter.
+      con.print(" " + Str$(counter) + " ")
+
+    Case 79
+      ' CT<-n
+      ' This sets the counter to the Par #1 value.
+      p = get_parameter(a)
+      counter = p
+
+    Case 80
+      ' EXRM0
+      ' This exchanges the values of the current room register with the alternate room register 0.
+      ' This may be used to save the room a player came from in order to put him back there later.
+      ' This should be followed by a GOTOy command if the alternate room register 0 had not already
+      ' been set.
+      x = r
+      r = alt_room(0)
+      alt_room(0) = x
+
+    Case 81
+      ' EXm,CT
+      ' This command exchanges the values of the counter and the Par #1 alternate counter. There
+      ' are eight alternate counters numbered from 0 to 7. Also, the time limit may be accessed as
+      ' alternate counter 8.
+      p = get_parameter(a)
+      x = counter
+      Select Case p
+        Case 0 To 7
+          counter = alt_counter(p)
+          alt_counter(p) = x
+        Case 8  ' light level
+          counter = lx
+          lx = x
+        Case Else
+          Error "illegal counter: " + Str$(p)
+      End Select
+
+    Case 82
+      ' CT+n
+      ' This adds the Par #1 value to the counter.
+      p = get_parameter(a)
+      counter = counter + p
+
+    Case 83
+      ' CT-n
+      ' This subtracts the Par #1 value from the counter.
+      p = get_parameter(a)
+      counter = counter - p
+
+    Case 84
+      ' SAYw
+      ' This says the noun (second word) input by the player.
+      con.print(Chr$(34) + nstr$ + Chr$(34))
+
+    Case 85
+      ' SAYwCR
+      ' This says the noun (second word) input by the player and starts a new line.
+      con.println(Chr$(34) + nstr$ + Chr$(34))
+
+    Case 86
+      ' SAYCR
+      ' This just starts a new line on the display.
+      con.println()
+
+    Case 87
+      ' EXc,CR
+      ' This exchanges the values of the current room register with the Par #1 alternate room
+      ' register. This may be used to remember more than one room. There are six alternate room
+      ' registers numbered from 0 to 5.
+      p = get_parameter(a)
+      x = r
+      r = alt_room(p)
+      alt_room(p) = x
+
+    Case 88
+      ' DELAY
+      ' This command delays about 1 second before going on to the next command.
+      Pause 1000
+
     Case 102 To 149
-      ' Display corresponding message.
+      ' Display messages 52-99.
       If debug Then con.print("[" + Str$(cmd - 50) + "] ")
       con.println(ms$(cmd - 50))
 
@@ -588,15 +775,15 @@ End Sub
 ' @param   a   current action index
 ' @global  ip  parameter pointer
 Function get_parameter(a)
- Local code, value
+  Local code, value
 
- Do
-   ip = ip + 1
-   value = Int(ca(a, ip) / 20)
-   code = ca(a, ip) - value * 20
- Loop While code <> 0
+  Do
+    ip = ip + 1
+    value = Int(ca(a, ip) / 20)
+    code = ca(a, ip) - value * 20
+  Loop While code <> 0
 
- get_parameter = value
+  get_parameter = value
 End Function
 
 Sub prompt_for_command(verb, noun, nstr$)
@@ -618,7 +805,7 @@ Sub prompt_for_command(verb, noun, nstr$)
       Case VERB_DUMP_STATE : print_state()
       Case VERB_DEBUG_ON   : con.println("OK.") : debug = 1
       Case VERB_DEBUG_OFF  : con.println("OK.") : debug = 0
-      Case VERB_FIXED_SEED : con.println("OK.") : _ = pseudo%(-7)
+      Case VERB_FIXED_SEED : con.println("OK.") : _ = sys.pseudo%(-7)
       Case Else            : Exit Do ' Handle 'verb' in calling code.
     End Select
 
@@ -628,9 +815,9 @@ End Sub
 
 Function prompt$(s$, echo)
   con.print(s$)
-  Colour RGB(White)
+  Colour Rgb(White)
   prompt$ = con.in$("", echo)
-  Colour RGB(Green)
+  Colour Rgb(Green)
 End Function
 
 Sub print_state()
@@ -651,11 +838,12 @@ Sub print_state()
 End Sub
 
 Sub parse(s$, verb, noun, nstr$)
-  Local tmp$ = s$
   Local vstr$
 
-  vstr$ = LCase$(str.next_token$(tmp$))
-  nstr$ = LCase$(str.next_token$(tmp$))
+  vstr$ = LCase$(str.next_token$(s$, " ", 1))
+  vstr$ = Choice(vstr$ = sys.NO_DATA$, "", vstr$)
+  nstr$ = LCase$(str.next_token$())
+  nstr$ = Choice(nstr$ = sys.NO_DATA$, "", nstr$)
 
   ' Handle empty input.
   If vstr$ = "" Then verb = VERB_NONE : Exit Sub
@@ -664,14 +852,14 @@ Sub parse(s$, verb, noun, nstr$)
   If Left$(vstr$, 1) = "#" Then verb = VERB_NONE : Exit Sub
 
   ' Reject commands of more than two words.
-  If str.next_token$(tmp$) <> "" Then verb = VERB_TOO_MANY : Exit Sub
+  If str.next_token$() <> sys.NO_DATA$ Then verb = VERB_TOO_MANY : Exit Sub
 
   verb = lookup_meta_command(vstr$, nstr$)
   If verb <> 0 Then Exit Sub
 
   ' Hack to allow use of common abbreviations, and avoid typing 'go'.
   If nstr$ = "" Then
-    Select Case vstr$:
+    Select Case vstr$
       Case "n", "north" : vstr$ = "go" : nstr$ = "north"
       Case "s", "south" : vstr$ = "go" : nstr$ = "south"
       Case "e", "east"  : vstr$ = "go" : nstr$ = "east"
@@ -691,13 +879,6 @@ Sub parse(s$, verb, noun, nstr$)
 
   verb = lookup_word(Left$(vstr$, ln), 0)
   noun = lookup_word(Left$(nstr$, ln), 1)
-
-  If noun <> 0 Then
-    nstr$ = LCase$(nv_str$(noun, 1)) ' to use correct synonym
-  Else
-    nstr$ = Left$(nstr$, ln)
-  EndIf
-
 End Sub
 
 Function lookup_meta_command(vstr$, nstr$)
@@ -724,7 +905,6 @@ Function lookup_meta_command(vstr$, nstr$)
   lookup_meta_command = verb
 End Function
 
-
 ' @param  word$  word to lookup
 ' @param  dict   dictionary to look in, 0 for verbs and 1 for nouns
 Function lookup_word(word$, dict)
@@ -750,8 +930,8 @@ Function lookup_word(word$, dict)
 End Function
 
 ' Picks up the object identified by 'nstr$'
-Sub do_get(nstr$)
-  Local carried = 0, i, k
+Sub do_get(noun, nstr$)
+  Local carried = 0, i, k, obj$ = obj_name$(noun, nstr$)
 
   If nstr$ = "" Then con.println("What?") : Exit Sub
 
@@ -761,7 +941,7 @@ Sub do_get(nstr$)
   If carried >= mx Then con.println("I've too much to carry!") : Exit Sub
 
   For i = 0 To il
-    If LCase$(obj_noun$(i)) = nstr$ Then
+    If obj_noun$(i) = obj$ Then
       If ia(i) = r Then
         ia(i) = -1
         k = 3
@@ -779,7 +959,16 @@ Sub do_get(nstr$)
   EndIf
 End Sub
 
-' Gets the noun for referring to the given object.
+' Gets an object name corresponding to a 'noun' and/or 'nstr$' supplied by the player.
+Function obj_name$(noun, nstr$)
+  If noun <> 0 Then
+    obj_name$ = LCase$(nv_str$(noun, 1)) ' to use correct synonym
+  Else
+    obj_name$ = LCase$(Left$(nstr$, ln))
+  EndIf
+End Function
+
+' Gets the (lower-case) noun for referring to the given object.
 Function obj_noun$(i)
   Local en, st
 
@@ -787,20 +976,18 @@ Function obj_noun$(i)
   If st > 1 Then
     en = InStr(st + 1, ia_str$(i), "/")
     If en < st + 1 Then Error "Missing trailing '/'"
-    obj_noun$ = Mid$(ia_str$(i), st + 1, en - st - 1)
+    obj_noun$ = LCase$(Mid$(ia_str$(i), st + 1, en - st - 1))
   EndIf
 
   If Len(obj_noun$) > ln Then Error "Object noun too long: " + obj_noun$
 End Function
 
-' Drops the object identified by 'nstr$'
-Sub do_drop(nstr$)
-  Local i, k = 0
-
-  If nstr$ = "" Then con.println("What?") : Exit Sub
+' Drops the object identified by 'noun' and/or 'nstr$'
+Sub do_drop(noun, nstr$)
+  Local i, k = 0, obj$ = obj_name$(noun, nstr$)
 
   For i = 0 To il
-    If LCase$(obj_noun$(i)) = nstr$ Then
+    If obj_noun$(i) = obj$ Then
       If ia(i) = -1 Then
         ia(i) = r
         k = 3
