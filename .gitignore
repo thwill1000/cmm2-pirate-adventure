@@ -1,0 +1,2 @@
+# Ignore output from the "dump" command
+*.dmp
