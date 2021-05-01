@@ -1,0 +1,165 @@
+# 01-05-2021 13:37:18
+# walkthrough
+e
+e
+get axe
+n
+get ox
+say bunyon
+look
+swim
+s
+look hole
+go hole
+get flint
+u
+w
+w
+take axe
+take ox
+take fruit
+e
+climb tree
+take keys
+read web
+d
+chop tree
+drop axe
+go stump
+drop ox
+drop fruit
+take lamp
+rub lamp
+rub lamp
+d
+take rubies
+u
+drop rubies
+d
+go hole
+unlock door
+drop keys
+go hall
+light lamp
+d
+s
+take bladder
+u
+d
+n
+u
+u
+u
+u
+u
+take gas
+go stump
+d
+go hole
+go hall
+d
+s
+u
+drop bladder
+light gas
+go hole
+jump
+yell
+take mirror
+go throne
+take crown
+w
+jump
+w
+take bricks
+d
+n
+u
+u
+u
+u
+drop crown
+take bottle
+d
+go hole
+drop flint
+go hall
+d
+d
+d
+w
+d
+take rug
+d
+take net
+read sign
+build dam
+drop bricks
+pour water
+take firestone
+say away
+say away
+unlight lamp
+s
+go stump
+drop firestone
+drop rug
+drop mirror
+u
+get mud
+e
+n
+get water
+catch fish
+s
+w
+go stump
+drop fish
+drop net
+u
+go stump
+d
+go hole
+get flint
+light lamp
+drop flint
+go hall
+d
+n
+n
+take honey
+pour water
+take bees
+# The bees suffocate "randomly", so need to get the random number generator to the correct place.
+look
+look
+look
+look
+look
+look
+take bees
+look
+look
+look
+look
+look
+look
+look
+take bees
+look
+take bees
+s
+s
+u
+u
+u
+u
+u
+n
+drop bees
+get eggs
+s
+go stump
+drop honey
+drop eggs
+score
